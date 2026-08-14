@@ -56,13 +56,28 @@ class IotdbClient {
     if (limit != null && limit > 0) payload['row_limit'] = limit;
     final response = await _guard(() => dio.post('/rest/v2/query', data: payload));
     final json = response.data as Map<String, dynamic>;
+    _throwIfServerError(json);
     return QueryResult.fromRestJson(json, sw.elapsedMilliseconds);
   }
 
   /// 非查询语句（DDL/DML/权限）
   Future<Map<String, dynamic>> nonQuery(String sql) async {
     final response = await _guard(() => dio.post('/rest/v2/nonQuery', data: {'sql': sql}));
-    return (response.data as Map<String, dynamic>?) ?? {};
+    final json = (response.data as Map<String, dynamic>?) ?? {};
+    _throwIfServerError(json);
+    return json;
+  }
+
+  /// REST v2 对 SQL 错误返回 HTTP 200 + {code: !=200, message}，需显式抛出
+  void _throwIfServerError(Map<String, dynamic> json) {
+    final code = json['code'];
+    if (code is num && code != 200) {
+      throw IotdbException(
+        json['message']?.toString() ?? '服务器返回错误（code $code）',
+        statusCode: code.toInt(),
+        kind: 'SERVER',
+      );
+    }
   }
 
   Future<Response<dynamic>> _guard(Future<Response<dynamic>> Function() request) async {

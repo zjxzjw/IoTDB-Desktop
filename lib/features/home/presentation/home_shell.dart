@@ -11,6 +11,8 @@ import '../../../shared/empty_state.dart';
 import '../../connections/presentation/connection_form_sheet.dart';
 import '../../connections/presentation/connection_sidebar.dart';
 import '../../database/presentation/database_page.dart';
+import '../../sql/presentation/sql_workbench_page.dart';
+import '../../users/presentation/users_page.dart';
 
 /// 应用外壳：左侧连接侧边栏 + 右侧内容区
 class HomeShell extends ConsumerWidget {
@@ -185,8 +187,8 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
           index: _tab,
           children: const [
             DatabasePage(),
-            _PlaceholderTab(icon: RemixIcons.code_box_line, message: 'SQL 编辑器、高亮与结果表格将在 M3 迭代开放'),
-            _PlaceholderTab(icon: RemixIcons.user_settings_line, message: '用户/角色/权限编辑器将在 M4 迭代开放'),
+            SqlWorkbenchPage(),
+            UsersPage(),
             _PlaceholderTab(icon: RemixIcons.bar_chart_2_line, message: '数据分页预览与图表将在 M5 迭代开放'),
           ],
         ),

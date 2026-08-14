@@ -32,6 +32,11 @@ Future<void> main(List<String> args) async {
       final resp = await dio.post('/rest/v2/${write ? 'nonQuery' : 'query'}',
           data: {'sql': sql});
       final body = resp.data as Map<String, dynamic>;
+      final code = body['code'];
+      if (code is num && code != 200) {
+        stderr.writeln('  FAIL  $name -> ${body['message']}');
+        exit(1);
+      }
       stderr.writeln('  PASS  $name');
       if (!write) {
         final cols = (body['column_names'] as List?)?.join(', ') ??

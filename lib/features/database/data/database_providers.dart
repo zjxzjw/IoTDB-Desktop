@@ -13,3 +13,8 @@ final deviceListProvider = FutureProvider.family<QueryResult, String>((ref, db) 
 final timeseriesListProvider = FutureProvider.family<QueryResult, String>((ref, device) {
   return ref.watch(iotdbClientProvider).query('SHOW TIMESERIES $device.**');
 });
+
+/// 全部测点（补全用，限制 1000 条）
+final timeseriesAutoCompleteProvider = FutureProvider<QueryResult>((ref) {
+  return ref.watch(iotdbClientProvider).query('SHOW TIMESERIES root LIMIT 1000');
+});
