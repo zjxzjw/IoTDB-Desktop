@@ -13,6 +13,7 @@ import '../../connections/presentation/connection_form_sheet.dart';
 import '../../connections/presentation/connection_sidebar.dart';
 import '../../data/presentation/data_browse_page.dart';
 import '../../dashboard/presentation/dashboard_page.dart';
+import '../../database/presentation/create_database_form.dart';
 import '../../database/presentation/database_page.dart';
 import '../../sql/presentation/sql_workbench_page.dart';
 import '../../users/presentation/users_page.dart';
@@ -437,6 +438,16 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
             ],
           ),
           actions: [
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              tooltip: '新建数据库',
+              onPressed: () => showCreateDatabaseSheet(context, ref),
+              icon: const Icon(
+                RemixIcons.play_list_add_line,
+                size: 18,
+                color: ShadTokens.mutedForeground,
+              ),
+            ),
             IconButton(
               visualDensity: VisualDensity.compact,
               tooltip: '刷新',
