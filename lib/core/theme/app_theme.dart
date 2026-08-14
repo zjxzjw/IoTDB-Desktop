@@ -91,6 +91,7 @@ ThemeData buildAppTheme({Brightness brightness = Brightness.light}) {
     ),
     inputDecorationTheme: InputDecorationTheme(
       isDense: true,
+      hoverColor: Colors.transparent,
       contentPadding: const EdgeInsets.symmetric(
         horizontal: TdTokens.space3,
         vertical: 10,
@@ -124,6 +125,25 @@ ThemeData buildAppTheme({Brightness brightness = Brightness.light}) {
         foregroundColor: Colors.white,
         disabledBackgroundColor: TdTokens.brandDisabled,
         elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
+        ),
+        textStyle: const TextStyle(
+          fontSize: TdTokens.fontBody,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: TdTokens.brand,
+        foregroundColor: Colors.white,
+        disabledBackgroundColor: TdTokens.brandDisabled,
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
         ),

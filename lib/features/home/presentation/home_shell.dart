@@ -61,7 +61,7 @@ class HomeShell extends ConsumerWidget {
                   onOpen: (c) => _openWorkspace(context, ref, c),
                   onTest: (c) => _testConnection(context, ref, c),
                   onEdit: (c) =>
-                      showConnectionFormSheet(context, ref, editing: c),
+                      showConnectionFormDialog(context, ref, editing: c),
                   onDelete: (c) => _deleteConnection(context, ref, c),
                 ),
               ),

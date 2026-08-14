@@ -7,44 +7,63 @@ import '../../../core/network/iotdb_client.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/tdesign_tokens.dart';
 
-/// 新建/编辑连接表单（ModalBottomSheet）
-Future<void> showConnectionFormSheet(
+/// 新建/编辑连接表单（居中 Dialog）
+Future<void> showConnectionFormDialog(
   BuildContext context,
   WidgetRef ref, {
   Connection? editing,
 }) {
-  return showModalBottomSheet(
+  return showGeneralDialog(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: TdTokens.bgContainer,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(TdTokens.radiusLarge),
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 220),
+    pageBuilder: (context, animation, secondaryAnimation) => Dialog(
+      backgroundColor: TdTokens.bgContainer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(TdTokens.radiusLarge),
+      ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(
+          horizontal: TdTokens.space6,
+          vertical: TdTokens.space4,
+        ),
+        child: ConnectionFormDialog(editing: editing),
       ),
     ),
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        left: TdTokens.space6,
-        right: TdTokens.space6,
-        top: TdTokens.space4,
-        bottom: MediaQuery.of(context).viewInsets.bottom + TdTokens.space6,
-      ),
-      child: ConnectionFormSheet(editing: editing),
-    ),
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutBack,
+        reverseCurve: Curves.easeIn,
+      );
+      return ScaleTransition(
+        scale: Tween<double>(begin: 0.85, end: 1.0).animate(curved),
+        child: FadeTransition(
+          opacity: CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOut,
+            reverseCurve: Curves.easeIn,
+          ),
+          child: child,
+        ),
+      );
+    },
   );
 }
 
-class ConnectionFormSheet extends ConsumerStatefulWidget {
+class ConnectionFormDialog extends ConsumerStatefulWidget {
   final Connection? editing;
 
-  const ConnectionFormSheet({super.key, this.editing});
+  const ConnectionFormDialog({super.key, this.editing});
 
   @override
-  ConsumerState<ConnectionFormSheet> createState() =>
-      _ConnectionFormSheetState();
+  ConsumerState<ConnectionFormDialog> createState() =>
+      _ConnectionFormDialogState();
 }
 
-class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
+class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _name;
   late final TextEditingController _host;
@@ -163,7 +182,7 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
       key: _formKey,
       child: SingleChildScrollView(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
+          constraints: const BoxConstraints(maxWidth: 560),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
@@ -191,86 +210,140 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space3),
-              TextFormField(
-                controller: _name,
-                decoration: const InputDecoration(
-                  labelText: '连接名称 *',
-                  hintText: '如：生产环境 1C1D',
+              const SizedBox(height: TdTokens.space4),
+              _LabeledField(
+                label: '连接名称 *',
+                child: TextFormField(
+                  controller: _name,
+                  style: const TextStyle(fontSize: 13),
+                  decoration: InputDecoration(
+                    filled: false,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: TdTokens.space3,
+                      vertical: 12,
+                    ),
+                  ),
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? '请输入连接名称' : null,
                 ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? '请输入连接名称' : null,
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: TdTokens.space4),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: TextFormField(
-                      controller: _host,
-                      decoration: const InputDecoration(
-                        labelText: '主机地址 *',
-                        hintText: '106.55.231.32',
-                      ),
-                      validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? '请输入主机地址' : null,
-                    ),
-                  ),
-                  const SizedBox(width: TdTokens.space3),
-                  SizedBox(
-                    width: 140,
-                    child: TextFormField(
-                      controller: _port,
-                      decoration: const InputDecoration(labelText: 'REST 端口 *'),
-                      keyboardType: TextInputType.number,
-                      validator: (v) {
-                        final p = int.tryParse(v ?? '');
-                        return (p == null || p < 1 || p > 65535)
-                            ? '1-65535'
-                            : null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: TdTokens.space3),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _username,
-                      decoration: const InputDecoration(
-                        labelText: '用户名',
-                        hintText: 'root',
+                    child: _LabeledField(
+                      label: '主机地址 *',
+                      child: TextFormField(
+                        controller: _host,
+                        style: const TextStyle(fontSize: 13),
+                        decoration: InputDecoration(
+                          filled: false,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: TdTokens.space3,
+                            vertical: 12,
+                          ),
+                        ),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? '请输入主机地址'
+                            : null,
                       ),
                     ),
                   ),
-                  const SizedBox(width: TdTokens.space3),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _password,
-                      obscureText: true,
-                      decoration: const InputDecoration(
-                        labelText: '密码',
-                        hintText: '存于系统钥匙串',
+                  const SizedBox(width: TdTokens.space4),
+                  _LabeledField(
+                    label: 'REST 端口 *',
+                    child: SizedBox(
+                      width: 140,
+                      child: TextFormField(
+                        controller: _port,
+                        style: const TextStyle(fontSize: 13),
+                        decoration: InputDecoration(
+                          filled: false,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: TdTokens.space3,
+                            vertical: 12,
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (v) {
+                          final p = int.tryParse(v ?? '');
+                          return (p == null || p < 1 || p > 65535)
+                              ? '1-65535'
+                              : null;
+                        },
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: TdTokens.space4),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: TextFormField(
-                      controller: _timeout,
-                      decoration: const InputDecoration(labelText: '超时（毫秒）'),
-                      keyboardType: TextInputType.number,
+                    child: _LabeledField(
+                      label: '用户名',
+                      child: TextFormField(
+                        controller: _username,
+                        style: const TextStyle(fontSize: 13),
+                        decoration: InputDecoration(
+                          filled: false,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: TdTokens.space3,
+                            vertical: 12,
+                          ),
+                          hintText: 'root',
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: TdTokens.space3),
+                  const SizedBox(width: TdTokens.space4),
+                  Expanded(
+                    child: _LabeledField(
+                      label: '密码',
+                      child: TextFormField(
+                        controller: _password,
+                        style: const TextStyle(fontSize: 13),
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          filled: false,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: TdTokens.space3,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: TdTokens.space4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _LabeledField(
+                      label: '超时（毫秒）',
+                      child: TextFormField(
+                        controller: _timeout,
+                        style: const TextStyle(fontSize: 13),
+                        decoration: InputDecoration(
+                          filled: false,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: TdTokens.space3,
+                            vertical: 12,
+                          ),
+                        ),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: TdTokens.space4),
                   Expanded(
                     child: SwitchListTile(
                       contentPadding: EdgeInsets.zero,
+                      hoverColor: Colors.transparent,
                       title: const Text(
                         'HTTPS',
                         style: TextStyle(fontSize: 13),
@@ -282,10 +355,12 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                 ],
               ),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
+                      hoverColor: Colors.transparent,
                       title: const Text(
                         '自定义行数上限',
                         style: TextStyle(fontSize: 13),
@@ -296,21 +371,29 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                     ),
                   ),
                   if (_useRowLimit)
-                    SizedBox(
-                      width: 150,
-                      child: TextFormField(
-                        controller: _rowLimit,
-                        decoration: const InputDecoration(
-                          labelText: 'row_limit',
+                    _LabeledField(
+                      label: 'row_limit',
+                      child: SizedBox(
+                        width: 150,
+                        child: TextFormField(
+                          controller: _rowLimit,
+                          style: const TextStyle(fontSize: 13),
+                          decoration: InputDecoration(
+                            filled: false,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: TdTokens.space3,
+                              vertical: 12,
+                            ),
+                          ),
+                          keyboardType: TextInputType.number,
                         ),
-                        keyboardType: TextInputType.number,
                       ),
                     ),
                 ],
               ),
               const SizedBox(height: TdTokens.space4),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   OutlinedButton(
                     onPressed: _testing ? null : _test,
@@ -322,24 +405,28 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                           )
                         : const Text('测试连接'),
                   ),
-                  const SizedBox(width: TdTokens.space2),
-                  OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('取消'),
-                  ),
-                  const SizedBox(width: TdTokens.space2),
-                  FilledButton(
-                    onPressed: _saving ? null : _save,
-                    child: _saving
-                        ? const SizedBox(
-                            width: 14,
-                            height: 14,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text('保存'),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('取消'),
+                      ),
+                      const SizedBox(width: TdTokens.space2),
+                      FilledButton(
+                        onPressed: _saving ? null : _save,
+                        child: _saving
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text('保存'),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -347,6 +434,34 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 标签在输入框上方的表单字段
+class _LabeledField extends StatelessWidget {
+  final String label;
+  final Widget child;
+
+  const _LabeledField({required this.label, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: TdTokens.fontAux,
+            fontWeight: FontWeight.w500,
+            color: TdTokens.textSecondary,
+          ),
+        ),
+        const SizedBox(height: TdTokens.space3),
+        child,
+      ],
     );
   }
 }

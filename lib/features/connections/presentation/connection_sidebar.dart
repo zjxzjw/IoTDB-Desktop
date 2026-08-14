@@ -47,7 +47,24 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
         children: [
           _buildHeader(context, ref),
           if (!_collapsed) ...[
-            const Divider(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                TdTokens.space2,
+                TdTokens.space3,
+                TdTokens.space2,
+                TdTokens.space3,
+              ),
+              child: FilledButton.icon(
+                onPressed: () => showConnectionFormDialog(context, ref),
+                icon: const Icon(RemixIcons.add_line, size: 16),
+                label: const Text('新建连接'),
+                style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
+                  ),
+                ),
+              ),
+            ),
             Expanded(
               child: widget.loading
                   ? const Center(
@@ -67,12 +84,14 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
     if (_collapsed) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: TdTokens.space3),
-        child: IconButton(
-          onPressed: () => setState(() => _collapsed = false),
-          icon: const Icon(RemixIcons.menu_unfold_line, size: 18),
-          tooltip: '展开侧边栏',
-          color: TdTokens.textSecondary,
-          visualDensity: VisualDensity.compact,
+        child: Center(
+          child: IconButton(
+            onPressed: () => setState(() => _collapsed = false),
+            icon: const Icon(RemixIcons.menu_unfold_line, size: 18),
+            tooltip: '展开侧边栏',
+            color: TdTokens.textSecondary,
+            visualDensity: VisualDensity.compact,
+          ),
         ),
       );
     }
@@ -87,7 +106,13 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
         children: [
           const Expanded(
             child: Text.rich(
-              TextSpan(text: 'IoTDB Desktop'),
+              TextSpan(
+                text: 'IoTDB Desktop',
+                style: TextStyle(
+                  fontSize: TdTokens.fontTitle,
+                  fontWeight: FontWeight.w600
+                )
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -139,7 +164,7 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
           ),
           const SizedBox(height: TdTokens.space3),
           TextButton.icon(
-            onPressed: () => showConnectionFormSheet(context, ref),
+            onPressed: () => showConnectionFormDialog(context, ref),
             icon: const Icon(RemixIcons.add_line, size: 16),
             label: const Text('新建连接'),
           ),
