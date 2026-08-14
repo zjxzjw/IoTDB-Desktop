@@ -14,6 +14,7 @@ class ConnectionSidebar extends ConsumerStatefulWidget {
   final List<Connection> connections;
   final bool loading;
   final ValueChanged<Connection> onOpen;
+  final ValueChanged<Connection> onDashboard;
   final ValueChanged<Connection> onTest;
   final ValueChanged<Connection> onEdit;
   final ValueChanged<Connection> onDelete;
@@ -24,6 +25,7 @@ class ConnectionSidebar extends ConsumerStatefulWidget {
     required this.connections,
     required this.loading,
     required this.onOpen,
+    required this.onDashboard,
     required this.onTest,
     required this.onEdit,
     required this.onDelete,
@@ -39,8 +41,15 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
   final Set<String> _expanded = {};
 
   void _handleOpen(Connection conn) {
-    setState(() => _expanded.add(conn.id));
-    widget.onOpen(conn);
+    final willExpand = !_expanded.contains(conn.id);
+    setState(() {
+      willExpand ? _expanded.add(conn.id) : _expanded.remove(conn.id);
+    });
+    if (willExpand &&
+        ref.read(connectionStatusProvider)[conn.id] !=
+            ConnectionStatus.success) {
+      widget.onOpen(conn);
+    }
   }
 
   @override
@@ -139,6 +148,7 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
             active: conn.id == active?.id,
             status: statuses[conn.id] ?? ConnectionStatus.unknown,
             onActivate: () => _handleOpen(conn),
+            onDashboard: () => widget.onDashboard(conn),
             onRefresh: () =>
                 ref.invalidate(connectionDatabaseListProvider(conn)),
             onTest: () => widget.onTest(conn),
@@ -183,6 +193,7 @@ class _ConnectionNode extends StatelessWidget {
   final bool active;
   final ConnectionStatus status;
   final VoidCallback onActivate;
+  final VoidCallback onDashboard;
   final VoidCallback onRefresh;
   final VoidCallback onTest;
   final VoidCallback onEdit;
@@ -195,6 +206,7 @@ class _ConnectionNode extends StatelessWidget {
     required this.active,
     required this.status,
     required this.onActivate,
+    required this.onDashboard,
     required this.onRefresh,
     required this.onTest,
     required this.onEdit,
@@ -209,6 +221,7 @@ class _ConnectionNode extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Material(
+          borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
           color: active
               ? (isLight
                     ? ShadTokens.sidebarActive
@@ -225,18 +238,6 @@ class _ConnectionNode extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  AnimatedRotation(
-                    turns: expanded ? 0.25 : 0.0,
-                    duration: const Duration(milliseconds: 150),
-                    child: Icon(
-                      RemixIcons.arrow_right_s_line,
-                      size: 16,
-                      color: expanded
-                          ? ShadTokens.mutedForeground
-                          : ShadTokens.placeholder,
-                    ),
-                  ),
-                  const SizedBox(width: ShadTokens.space1),
                   SizedBox(
                     width: 8,
                     height: 8,
@@ -271,8 +272,28 @@ class _ConnectionNode extends StatelessWidget {
                       ],
                     ),
                   ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    tooltip: '仪表盘',
+                    onPressed: onDashboard,
+                    icon: const Icon(
+                      RemixIcons.speed_up_line,
+                      size: 16,
+                      color: ShadTokens.mutedForeground,
+                    ),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    tooltip: '刷新',
+                    onPressed: onRefresh,
+                    icon: const Icon(
+                      RemixIcons.refresh_line,
+                      size: 16,
+                      color: ShadTokens.mutedForeground,
+                    ),
+                  ),
                   PopupMenuButton<_ConnAction>(
-                    tooltip: '连接操作',
+                    tooltip: '操作',
                     icon: const Icon(
                       RemixIcons.more_line,
                       size: 16,
@@ -280,7 +301,6 @@ class _ConnectionNode extends StatelessWidget {
                     ),
                     onSelected: (action) => switch (action) {
                       _ConnAction.test => onTest(),
-                      _ConnAction.refresh => onRefresh(),
                       _ConnAction.edit => onEdit(),
                       _ConnAction.delete => onDelete(),
                     },
@@ -288,10 +308,6 @@ class _ConnectionNode extends StatelessWidget {
                       PopupMenuItem(
                         value: _ConnAction.test,
                         child: Text('测试连接'),
-                      ),
-                      PopupMenuItem(
-                        value: _ConnAction.refresh,
-                        child: Text('刷新数据库列表'),
                       ),
                       PopupMenuItem(
                         value: _ConnAction.edit,
@@ -302,6 +318,17 @@ class _ConnectionNode extends StatelessWidget {
                         child: Text('删除连接'),
                       ),
                     ],
+                  ),
+                  AnimatedRotation(
+                    turns: expanded ? 0.25 : 0.0,
+                    duration: const Duration(milliseconds: 150),
+                    child: Icon(
+                      RemixIcons.arrow_right_s_line,
+                      size: 16,
+                      color: expanded
+                          ? ShadTokens.mutedForeground
+                          : ShadTokens.placeholder,
+                    ),
                   ),
                 ],
               ),
@@ -324,7 +351,7 @@ class _ConnectionNode extends StatelessWidget {
   }
 }
 
-enum _ConnAction { test, refresh, edit, delete }
+enum _ConnAction { test, edit, delete }
 
 class _DatabaseList extends ConsumerWidget {
   final Connection conn;

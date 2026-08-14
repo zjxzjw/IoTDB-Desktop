@@ -12,9 +12,13 @@ import '../../../shared/confirm_dialog.dart';
 import '../../connections/presentation/connection_form_sheet.dart';
 import '../../connections/presentation/connection_sidebar.dart';
 import '../../data/presentation/data_browse_page.dart';
+import '../../dashboard/presentation/dashboard_page.dart';
 import '../../database/presentation/database_page.dart';
 import '../../sql/presentation/sql_workbench_page.dart';
 import '../../users/presentation/users_page.dart';
+
+/// 工作区「仪表盘」Tab 索引
+const dashboardTabIndex = 4;
 
 /// 应用外壳：左侧连接侧边栏（可拖拽调整宽度）+ 右侧内容区
 class HomeShell extends ConsumerStatefulWidget {
@@ -88,6 +92,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     connections: [],
                     loading: true,
                     onOpen: _noop,
+                    onDashboard: _noop,
                     onTest: _noop,
                     onEdit: _noop,
                     onDelete: _noop,
@@ -97,6 +102,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     connections: [],
                     loading: false,
                     onOpen: _noop,
+                    onDashboard: _noop,
                     onTest: _noop,
                     onEdit: _noop,
                     onDelete: _noop,
@@ -106,6 +112,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     connections: list,
                     loading: false,
                     onOpen: (c) => _openWorkspace(ref, c),
+                    onDashboard: (c) => _openDashboard(ref, c),
                     onTest: (c) => _testConnection(context, ref, c),
                     onEdit: (c) =>
                         showConnectionFormDialog(context, ref, editing: c),
@@ -147,6 +154,16 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     }
     ref.read(workspaceTabProvider.notifier).select(0);
     ref.read(metadataSelectionProvider.notifier).select(node);
+  }
+
+  /// 点击侧栏仪表盘：未打开该连接时自动连接，然后切到「仪表盘」Tab
+  Future<void> _openDashboard(WidgetRef ref, Connection conn) async {
+    final active = ref.read(activeConnectionProvider);
+    if (active?.id != conn.id) {
+      await _openWorkspace(ref, conn);
+      if (ref.read(activeConnectionProvider)?.id != conn.id) return;
+    }
+    ref.read(workspaceTabProvider.notifier).select(dashboardTabIndex);
   }
 
   Future<void> _testConnection(
@@ -287,7 +304,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
     }
     final tab = ref.watch(workspaceTabProvider);
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           titleSpacing: ShadTokens.space4,
@@ -332,6 +349,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
               Tab(text: 'SQL 工作台'),
               Tab(text: '用户与权限'),
               Tab(text: '数据浏览'),
+              Tab(text: '仪表盘'),
             ],
           ),
         ),
@@ -342,6 +360,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
             SqlWorkbenchPage(),
             UsersPage(),
             DataBrowsePage(),
+            DashboardPage(),
           ],
         ),
       ),
