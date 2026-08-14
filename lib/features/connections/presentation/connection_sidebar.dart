@@ -7,7 +7,7 @@ import '../../../core/theme/tdesign_tokens.dart';
 import 'connection_form_sheet.dart';
 
 /// 侧边栏：连接列表 + 新建入口
-class ConnectionSidebar extends ConsumerWidget {
+class ConnectionSidebar extends ConsumerStatefulWidget {
   final List<Connection> connections;
   final bool loading;
   final ValueChanged<Connection> onOpen;
@@ -26,9 +26,18 @@ class ConnectionSidebar extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConnectionSidebar> createState() => _ConnectionSidebarState();
+}
+
+class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
+  static const double _collapsedWidth = 48;
+
+  bool _collapsed = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: 280,
+      width: _collapsed ? _collapsedWidth : 280,
       decoration: BoxDecoration(
         color: TdTokens.bgContainer,
         border: Border(right: BorderSide(color: TdTokens.divider)),
@@ -37,20 +46,36 @@ class ConnectionSidebar extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildHeader(context, ref),
-          const Divider(),
-          Expanded(
-            child: loading
-                ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-                : connections.isEmpty
-                ? _buildEmpty(context, ref)
-                : _buildList(context, ref),
-          ),
+          if (!_collapsed) ...[
+            const Divider(),
+            Expanded(
+              child: widget.loading
+                  ? const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : widget.connections.isEmpty
+                  ? _buildEmpty(context, ref)
+                  : _buildList(context, ref),
+            ),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
+    if (_collapsed) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: TdTokens.space3),
+        child: IconButton(
+          onPressed: () => setState(() => _collapsed = false),
+          icon: const Icon(RemixIcons.menu_unfold_line, size: 18),
+          tooltip: '展开侧边栏',
+          color: TdTokens.textSecondary,
+          visualDensity: VisualDensity.compact,
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(
         TdTokens.space4,
@@ -60,28 +85,18 @@ class ConnectionSidebar extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          const Icon(
-            RemixIcons.database_2_line,
-            size: 20,
-            color: TdTokens.brand,
-          ),
-          const SizedBox(width: TdTokens.space2),
           const Expanded(
-            child: Text(
-              'IoTDB Desktop',
+            child: Text.rich(
+              TextSpan(text: 'IoTDB Desktop'),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: TdTokens.fontTitle,
-                fontWeight: FontWeight.w600,
-              ),
             ),
           ),
           IconButton(
-            onPressed: () => showConnectionFormSheet(context, ref),
-            icon: const Icon(RemixIcons.add_line, size: 18),
-            tooltip: '新建连接',
-            color: TdTokens.brand,
+            onPressed: () => setState(() => _collapsed = true),
+            icon: const Icon(RemixIcons.menu_fold_line, size: 18),
+            tooltip: '收起侧边栏',
+            color: TdTokens.textSecondary,
             visualDensity: VisualDensity.compact,
           ),
         ],
@@ -92,16 +107,16 @@ class ConnectionSidebar extends ConsumerWidget {
   Widget _buildList(BuildContext context, WidgetRef ref) {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: TdTokens.space2),
-      itemCount: connections.length,
+      itemCount: widget.connections.length,
       separatorBuilder: (_, _) => const SizedBox(height: 2),
       itemBuilder: (context, index) {
-        final conn = connections[index];
+        final conn = widget.connections[index];
         return _ConnectionItem(
           conn: conn,
-          onOpen: () => onOpen(conn),
-          onTest: () => onTest(conn),
-          onEdit: () => onEdit(conn),
-          onDelete: () => onDelete(conn),
+          onOpen: () => widget.onOpen(conn),
+          onTest: () => widget.onTest(conn),
+          onEdit: () => widget.onEdit(conn),
+          onDelete: () => widget.onDelete(conn),
         );
       },
     );

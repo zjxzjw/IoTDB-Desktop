@@ -9,8 +9,8 @@ import '../../../core/theme/tdesign_tokens.dart';
 import '../../../shared/confirm_dialog.dart';
 import '../../connections/presentation/connection_form_sheet.dart';
 import '../../connections/presentation/connection_sidebar.dart';
-import '../../database/presentation/database_page.dart';
 import '../../data/presentation/data_browse_page.dart';
+import '../../database/presentation/database_page.dart';
 import '../../sql/presentation/sql_workbench_page.dart';
 import '../../users/presentation/users_page.dart';
 
@@ -18,10 +18,16 @@ import '../../users/presentation/users_page.dart';
 class HomeShell extends ConsumerWidget {
   const HomeShell({super.key});
 
-  Future<void> _openWorkspace(BuildContext context, WidgetRef ref, Connection conn) async {
+  Future<void> _openWorkspace(
+    BuildContext context,
+    WidgetRef ref,
+    Connection conn,
+  ) async {
     ref.read(activeConnectionProvider.notifier).set(conn);
     if (context.mounted) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const WorkspaceScreen()));
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const WorkspaceScreen()));
     }
   }
 
@@ -30,7 +36,9 @@ class HomeShell extends ConsumerWidget {
     return Scaffold(
       body: Row(
         children: [
-          ref.watch(connectionStoreProvider).when(
+          ref
+              .watch(connectionStoreProvider)
+              .when(
                 loading: () => const ConnectionSidebar(
                   connections: [],
                   loading: true,
@@ -52,7 +60,8 @@ class HomeShell extends ConsumerWidget {
                   loading: false,
                   onOpen: (c) => _openWorkspace(context, ref, c),
                   onTest: (c) => _testConnection(context, ref, c),
-                  onEdit: (c) => showConnectionFormSheet(context, ref, editing: c),
+                  onEdit: (c) =>
+                      showConnectionFormSheet(context, ref, editing: c),
                   onDelete: (c) => _deleteConnection(context, ref, c),
                 ),
               ),
@@ -65,7 +74,11 @@ class HomeShell extends ConsumerWidget {
 
   static void _noop(Connection c) {}
 
-  Future<void> _testConnection(BuildContext context, WidgetRef ref, Connection conn) async {
+  Future<void> _testConnection(
+    BuildContext context,
+    WidgetRef ref,
+    Connection conn,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
       final client = IotdbClient(conn);
@@ -76,14 +89,22 @@ class HomeShell extends ConsumerWidget {
         version = r.rows.isNotEmpty ? '${r.rows.first.first}' : '';
       } catch (_) {}
       messenger.showSnackBar(
-        SnackBar(content: Text('连接成功（${ms}ms）${version.isEmpty ? '' : '，服务端版本 $version'}')),
+        SnackBar(
+          content: Text(
+            '连接成功（${ms}ms）${version.isEmpty ? '' : '，服务端版本 $version'}',
+          ),
+        ),
       );
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('$e')));
     }
   }
 
-  Future<void> _deleteConnection(BuildContext context, WidgetRef ref, Connection conn) async {
+  Future<void> _deleteConnection(
+    BuildContext context,
+    WidgetRef ref,
+    Connection conn,
+  ) async {
     final confirmed = await showConfirmDialog(
       context,
       title: '删除连接',
@@ -94,7 +115,9 @@ class HomeShell extends ConsumerWidget {
     if (confirmed) {
       await ref.read(connectionStoreProvider.notifier).remove(conn.id);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已删除连接')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('已删除连接')));
       }
     }
   }
@@ -105,16 +128,18 @@ class _WelcomePane extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final list = ref.watch(connectionStoreProvider).value ?? const <Connection>[];
+    final list =
+        ref.watch(connectionStoreProvider).value ?? const <Connection>[];
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(RemixIcons.database_2_line, size: 48, color: TdTokens.brand),
-          const SizedBox(height: TdTokens.space4),
           Text(
             list.isEmpty ? '欢迎使用 IoTDB Desktop' : '选择一个连接开始管理',
-            style: const TextStyle(fontSize: TdTokens.fontPage, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontSize: TdTokens.fontPage,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: TdTokens.space2),
           const Text(
@@ -143,7 +168,9 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
     final conn = ref.watch(activeConnectionProvider);
     if (conn == null) {
       return const Scaffold(
-        body: Center(child: Text('未打开连接', style: TextStyle(color: TdTokens.textSecondary))),
+        body: Center(
+          child: Text('未打开连接', style: TextStyle(color: TdTokens.textSecondary)),
+        ),
       );
     }
     return DefaultTabController(
@@ -153,13 +180,21 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
           titleSpacing: TdTokens.space4,
           title: Row(
             children: [
-              const Icon(RemixIcons.database_line, size: 18, color: TdTokens.brand),
+              const Icon(
+                RemixIcons.database_line,
+                size: 18,
+                color: TdTokens.brand,
+              ),
               const SizedBox(width: TdTokens.space2),
               Text(conn.name),
               const SizedBox(width: TdTokens.space3),
               Text(
                 '${conn.host}:${conn.port}',
-                style: const TextStyle(fontSize: TdTokens.fontAux, color: TdTokens.textSecondary, fontWeight: FontWeight.w400),
+                style: const TextStyle(
+                  fontSize: TdTokens.fontAux,
+                  color: TdTokens.textSecondary,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
             ],
           ),
