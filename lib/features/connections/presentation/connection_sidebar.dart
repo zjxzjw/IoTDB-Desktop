@@ -58,11 +58,8 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
   Widget build(BuildContext context) {
     return Material(
       color: ShadTokens.sidebar,
-      child: Container(
+      child: SizedBox(
         width: double.infinity,
-        decoration: BoxDecoration(
-          border: Border(right: BorderSide(color: ShadTokens.border)),
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

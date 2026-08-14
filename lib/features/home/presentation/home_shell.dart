@@ -286,8 +286,8 @@ class _WelcomePane extends ConsumerWidget {
   }
 }
 
-/// 侧边栏右缘拖拽手柄：鼠标悬停显示调整光标，拖拽改变宽度
-class _SidebarResizeHandle extends StatelessWidget {
+/// 侧边栏右缘拖拽滑块：无缝隙分隔左右区域，鼠标移入浮现滑块并高亮，拖拽改变宽度
+class _SidebarResizeHandle extends StatefulWidget {
   final VoidCallback onDragStart;
   final ValueChanged<double> onDrag;
   final VoidCallback onDragEnd;
@@ -299,23 +299,49 @@ class _SidebarResizeHandle extends StatelessWidget {
   });
 
   @override
+  State<_SidebarResizeHandle> createState() => _SidebarResizeHandleState();
+}
+
+class _SidebarResizeHandleState extends State<_SidebarResizeHandle> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
     return MouseRegion(
       cursor: SystemMouseCursors.resizeLeftRight,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onHorizontalDragStart: (_) => onDragStart(),
-        onHorizontalDragUpdate: (d) => onDrag(d.delta.dx),
-        onHorizontalDragEnd: (_) => onDragEnd(),
-        onHorizontalDragCancel: onDragEnd,
-        child: Container(
+        onHorizontalDragStart: (_) => widget.onDragStart(),
+        onHorizontalDragUpdate: (d) => widget.onDrag(d.delta.dx),
+        onHorizontalDragEnd: (_) => widget.onDragEnd(),
+        onHorizontalDragCancel: widget.onDragEnd,
+        child: SizedBox(
           width: 6,
-          color: Colors.transparent,
-          child: Center(
-            child: Container(
-              width: 1,
-              color: ShadTokens.border,
-            ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned(
+                top: 0,
+                bottom: 0,
+                width: 1,
+                child: ColoredBox(
+                  color: _hovered
+                      ? Theme.of(context).colorScheme.primary
+                      : ShadTokens.border,
+                ),
+              ),
+              if (_hovered)
+                Container(
+                  width: 4,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
