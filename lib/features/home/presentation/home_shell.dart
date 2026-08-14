@@ -55,17 +55,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     ref.read(sidebarWidthProvider.notifier).setWidth(_sidebarWidth);
   }
 
-  Future<void> _openWorkspace(
-    BuildContext context,
-    WidgetRef ref,
-    Connection conn,
-  ) async {
+  void _openWorkspace(WidgetRef ref, Connection conn) {
     ref.read(activeConnectionProvider.notifier).set(conn);
-    if (context.mounted) {
-      Navigator.of(
-        context,
-      ).push(MaterialPageRoute(builder: (_) => const WorkspaceScreen()));
-    }
   }
 
   @override
@@ -99,7 +90,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                   data: (list) => ConnectionSidebar(
                     connections: list,
                     loading: false,
-                    onOpen: (c) => _openWorkspace(context, ref, c),
+                    onOpen: (c) => _openWorkspace(ref, c),
                     onTest: (c) => _testConnection(context, ref, c),
                     onEdit: (c) =>
                         showConnectionFormDialog(context, ref, editing: c),
@@ -112,7 +103,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             onDrag: _onDrag,
             onDragEnd: _onDragEnd,
           ),
-          const Expanded(child: _WelcomePane()),
+          Expanded(
+            child: ref.watch(activeConnectionProvider) == null
+                ? const _WelcomePane()
+                : const WorkspaceScreen(),
+          ),
         ],
       ),
     );
@@ -181,7 +176,7 @@ class _WelcomePane extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            list.isEmpty ? '欢迎使用 IoTDB Desktop' : '选择一个连接开始管理',
+            list.isEmpty ? '欢迎使用 Desktop' : '选择一个连接开始管理',
             style: const TextStyle(
               fontSize: ShadTokens.fontPage,
               fontWeight: FontWeight.w600,
@@ -189,7 +184,7 @@ class _WelcomePane extends ConsumerWidget {
           ),
           const SizedBox(height: ShadTokens.space2),
           const Text(
-            '左侧管理 IoTDB REST 连接，双击或点击连接进入工作区',
+            '左侧管理 REST 连接，双击或点击连接进入工作区',
             style: TextStyle(fontSize: 13, color: ShadTokens.mutedForeground),
           ),
         ],
@@ -286,7 +281,8 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
               padding: const EdgeInsets.only(right: ShadTokens.space3),
               child: IconButton(
                 tooltip: '返回连接管理',
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () =>
+                    ref.read(activeConnectionProvider.notifier).clear(),
                 icon: const Icon(RemixIcons.arrow_left_line, size: 18),
               ),
             ),

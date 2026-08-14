@@ -54,6 +54,11 @@ class ThemeModeNotifier extends AsyncNotifier<ThemeMode> {
   }
 }
 
+/// 连接存储单例（build/save/remove 共用同一内存列表，避免覆盖磁盘数据）
+final connectionStoreInstanceProvider = Provider<ConnectionStore>(
+  (ref) => ConnectionStore(ref.watch(secureStoreProvider)),
+);
+
 /// 连接列表（AsyncNotifier：build 时从磁盘加载）
 final connectionStoreProvider =
     AsyncNotifierProvider<ConnectionStoreNotifier, List<Connection>>(
@@ -61,7 +66,7 @@ final connectionStoreProvider =
     );
 
 class ConnectionStoreNotifier extends AsyncNotifier<List<Connection>> {
-  ConnectionStore get _store => ConnectionStore(ref.read(secureStoreProvider));
+  ConnectionStore get _store => ref.read(connectionStoreInstanceProvider);
 
   @override
   Future<List<Connection>> build() async {

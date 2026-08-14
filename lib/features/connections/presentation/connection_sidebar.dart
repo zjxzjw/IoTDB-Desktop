@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../../../core/models/connection.dart';
+import '../../../core/providers.dart';
 import '../../../core/theme/shadcn_tokens.dart';
 import '../../settings/presentation/settings_dialog.dart';
 import 'connection_form_sheet.dart';
@@ -33,44 +34,48 @@ class ConnectionSidebar extends ConsumerStatefulWidget {
 class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: ShadTokens.sidebar,
-        border: Border(right: BorderSide(color: ShadTokens.border)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildHeader(context, ref),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              ShadTokens.space2,
-              ShadTokens.space3,
-              ShadTokens.space2,
-              ShadTokens.space3,
-            ),
-            child: FilledButton.icon(
-              onPressed: () => showConnectionFormDialog(context, ref),
-              icon: const Icon(RemixIcons.add_line, size: 16),
-              label: const Text('新建连接'),
-              style: FilledButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+    return Material(
+      color: ShadTokens.sidebar,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          border: Border(right: BorderSide(color: ShadTokens.border)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildHeader(context, ref),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                ShadTokens.space2,
+                ShadTokens.space3,
+                ShadTokens.space2,
+                ShadTokens.space3,
+              ),
+              child: FilledButton.icon(
+                onPressed: () => showConnectionFormDialog(context, ref),
+                icon: const Icon(RemixIcons.add_line, size: 16),
+                label: const Text('新建连接'),
+                style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(
+                      ShadTokens.radiusDefault,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: widget.loading
-                ? const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : widget.connections.isEmpty
-                ? _buildEmpty(context, ref)
-                : _buildList(context, ref),
-          ),
-        ],
+            Expanded(
+              child: widget.loading
+                  ? const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : widget.connections.isEmpty
+                  ? _buildEmpty(context, ref)
+                  : _buildList(context, ref),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -111,6 +116,7 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
   }
 
   Widget _buildList(BuildContext context, WidgetRef ref) {
+    final active = ref.watch(activeConnectionProvider);
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space2),
       itemCount: widget.connections.length,
@@ -119,6 +125,7 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
         final conn = widget.connections[index];
         return _ConnectionItem(
           conn: conn,
+          active: conn.id == active?.id,
           onOpen: () => widget.onOpen(conn),
           onTest: () => widget.onTest(conn),
           onEdit: () => widget.onEdit(conn),
@@ -157,6 +164,7 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
 
 class _ConnectionItem extends StatelessWidget {
   final Connection conn;
+  final bool active;
   final VoidCallback onOpen;
   final VoidCallback onTest;
   final VoidCallback onEdit;
@@ -164,6 +172,7 @@ class _ConnectionItem extends StatelessWidget {
 
   const _ConnectionItem({
     required this.conn,
+    required this.active,
     required this.onOpen,
     required this.onTest,
     required this.onEdit,
@@ -184,12 +193,12 @@ class _ConnectionItem extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const SizedBox(
+            SizedBox(
               width: 8,
               height: 8,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: ShadTokens.placeholder,
+                  color: active ? ShadTokens.success : ShadTokens.placeholder,
                   shape: BoxShape.circle,
                 ),
               ),

@@ -163,9 +163,6 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
       await ref.read(connectionStoreProvider.notifier).save(conn);
       if (!mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(widget.editing == null ? '连接已保存' : '连接已更新')),
-      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -318,80 +315,107 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: ShadTokens.space4),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _LabeledField(
+              const SizedBox(height: ShadTokens.space6),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: ShadTokens.border),
+                  borderRadius:
+                      BorderRadius.circular(ShadTokens.radiusDefault),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: ExpansionTile(
+                  initiallyExpanded: true,
+                  maintainState: true,
+                  tilePadding: const EdgeInsets.symmetric(
+                    horizontal: ShadTokens.space3,
+                  ),
+                  childrenPadding: const EdgeInsets.fromLTRB(
+                    ShadTokens.space3,
+                    0,
+                    ShadTokens.space3,
+                    ShadTokens.space3,
+                  ),
+                  leading: const Icon(
+                    RemixIcons.settings_3_line,
+                    size: 16,
+                    color: ShadTokens.mutedForeground,
+                  ),
+                  title: const Text(
+                    '高级',
+                    style: TextStyle(
+                      fontSize: ShadTokens.fontBody,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  shape: const Border(),
+                  collapsedShape: const Border(),
+                  iconColor: ShadTokens.mutedForeground,
+                  collapsedIconColor: ShadTokens.mutedForeground,
+                  children: [
+                    const SizedBox(height: ShadTokens.space2),
+                    _AdvancedRow(
                       label: '超时（毫秒）',
-                      child: TextFormField(
-                        controller: _timeout,
-                        style: const TextStyle(fontSize: 13),
-                        decoration: InputDecoration(
-                          filled: false,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: ShadTokens.space3,
-                            vertical: 12,
-                          ),
-                        ),
-                        keyboardType: TextInputType.number,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: ShadTokens.space4),
-                  Expanded(
-                    child: SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      hoverColor: Colors.transparent,
-                      title: const Text(
-                        'HTTPS',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                      value: _enableSSL,
-                      onChanged: (v) => setState(() => _enableSSL = v),
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      hoverColor: Colors.transparent,
-                      title: const Text(
-                        '自定义行数上限',
-                        style: TextStyle(fontSize: 13),
-                      ),
-                      value: _useRowLimit,
-                      onChanged: (v) =>
-                          setState(() => _useRowLimit = v ?? false),
-                    ),
-                  ),
-                  if (_useRowLimit)
-                    _LabeledField(
-                      label: 'row_limit',
                       child: SizedBox(
-                        width: 150,
+                        width: 180,
                         child: TextFormField(
-                          controller: _rowLimit,
+                          controller: _timeout,
                           style: const TextStyle(fontSize: 13),
                           decoration: InputDecoration(
                             filled: false,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: ShadTokens.space3,
-                              vertical: 12,
+                              vertical: 8,
                             ),
                           ),
                           keyboardType: TextInputType.number,
                         ),
                       ),
                     ),
-                ],
+                    const SizedBox(height: ShadTokens.space2),
+                    _AdvancedRow(
+                      label: 'HTTPS',
+                      child: Transform.scale(
+                        scale: 0.75,
+                        child: Switch.adaptive(
+                          value: _enableSSL,
+                          onChanged: (v) => setState(() => _enableSSL = v),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: ShadTokens.space2),
+                    _AdvancedRow(
+                      label: '自定义行数上限',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Checkbox(
+                            value: _useRowLimit,
+                            onChanged: (v) =>
+                                setState(() => _useRowLimit = v ?? false),
+                          ),
+                          if (_useRowLimit)
+                            SizedBox(
+                              width: 180,
+                              child: TextFormField(
+                                controller: _rowLimit,
+                                style: const TextStyle(fontSize: 13),
+                                decoration: InputDecoration(
+                                  filled: false,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: ShadTokens.space3,
+                                    vertical: 8,
+                                  ),
+                                ),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(height: ShadTokens.space4),
+              const SizedBox(height: ShadTokens.space8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -460,6 +484,33 @@ class _LabeledField extends StatelessWidget {
           ),
         ),
         const SizedBox(height: ShadTokens.space3),
+        child,
+      ],
+    );
+  }
+}
+
+/// 标签在前、控件在后的高级设置行
+class _AdvancedRow extends StatelessWidget {
+  final String label;
+  final Widget child;
+
+  const _AdvancedRow({required this.label, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 120,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: ShadTokens.fontBody,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
         child,
       ],
     );

@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 /// 应用级设置持久化：settings.json（侧边栏宽度、主题模式等）
 class AppSettingsStore {
-  static const double defaultSidebarWidth = 280;
+  static const double defaultSidebarWidth = 325;
   static const double minSidebarWidth = 200;
   static const double maxSidebarWidth = 600;
 
