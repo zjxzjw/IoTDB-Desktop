@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../../../core/utils/sql_builder.dart';
 
 /// TTL 设置对话框：自定义毫秒 / INF / 取消 TTL
@@ -93,14 +93,14 @@ class _TtlDialogState extends ConsumerState<TtlDialog> {
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   '自定义 TTL',
-                  style: TextStyle(fontSize: TdTokens.fontBody),
+                  style: TextStyle(fontSize: ShadTokens.fontBody),
                 ),
                 value: _TtlMode.custom,
               ),
               Padding(
                 padding: const EdgeInsets.only(
                   left: 36,
-                  bottom: TdTokens.space2,
+                  bottom: ShadTokens.space2,
                 ),
                 child: TextField(
                   controller: _ttl,
@@ -116,7 +116,7 @@ class _TtlDialogState extends ConsumerState<TtlDialog> {
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   '永久保存（INF）',
-                  style: TextStyle(fontSize: TdTokens.fontBody),
+                  style: TextStyle(fontSize: ShadTokens.fontBody),
                 ),
                 value: _TtlMode.infinite,
               ),
@@ -124,7 +124,7 @@ class _TtlDialogState extends ConsumerState<TtlDialog> {
                 contentPadding: EdgeInsets.zero,
                 title: Text(
                   '取消 TTL（UNSET）',
-                  style: TextStyle(fontSize: TdTokens.fontBody),
+                  style: TextStyle(fontSize: ShadTokens.fontBody),
                 ),
                 value: _TtlMode.unset,
               ),

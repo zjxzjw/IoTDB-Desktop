@@ -4,7 +4,7 @@ import 'package:remixicon/remixicon.dart';
 
 import '../../../core/models/query_result.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../../../core/utils/sql_builder.dart';
 import '../../../shared/confirm_dialog.dart';
 import '../../../shared/result_table.dart';
@@ -47,8 +47,8 @@ class _DatabasePageState extends ConsumerState<DatabasePage> {
                   loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
                   error: (e, _) => Center(
                     child: Padding(
-                      padding: const EdgeInsets.all(TdTokens.space4),
-                      child: Text('加载失败：$e', style: const TextStyle(color: TdTokens.danger)),
+                      padding: const EdgeInsets.all(ShadTokens.space4),
+                      child: Text('加载失败：$e', style: const TextStyle(color: ShadTokens.destructive)),
                     ),
                   ),
                   data: (r) => MetadataTree(
@@ -71,14 +71,14 @@ class _DatabasePageState extends ConsumerState<DatabasePage> {
 
   Widget _buildTreeHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TdTokens.space4, vertical: TdTokens.space3),
+      padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space4, vertical: ShadTokens.space3),
       child: Row(
         children: [
-          const Icon(RemixIcons.tree_line, size: 16, color: TdTokens.brand),
-          const SizedBox(width: TdTokens.space2),
+          const Icon(RemixIcons.tree_line, size: 16, color: ShadTokens.primary),
+          const SizedBox(width: ShadTokens.space2),
           const Text(
             '元数据',
-            style: TextStyle(fontSize: TdTokens.fontTitle, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           IconButton(
@@ -103,7 +103,7 @@ class _DatabasePageState extends ConsumerState<DatabasePage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: TdTokens.space4, vertical: TdTokens.space3),
+          padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space4, vertical: ShadTokens.space3),
           child: Row(
             children: [
               IconButton(
@@ -112,16 +112,16 @@ class _DatabasePageState extends ConsumerState<DatabasePage> {
                 onPressed: _clearSelection,
                 icon: const Icon(RemixIcons.arrow_left_line, size: 18),
               ),
-              const SizedBox(width: TdTokens.space2),
+              const SizedBox(width: ShadTokens.space2),
               Expanded(
                 child: Text(
                   selected.path,
-                  style: const TextStyle(fontSize: TdTokens.fontTitle, fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (selected.type == MetaNodeType.device) ...[
-                const SizedBox(width: TdTokens.space2),
+                const SizedBox(width: ShadTokens.space2),
                 FilledButton.icon(
                   onPressed: () => showCreateTimeseriesSheet(context, ref, devicePrefix: selected.path),
                   icon: const Icon(RemixIcons.add_line, size: 16),
@@ -154,7 +154,7 @@ class _DatabaseListPanel extends ConsumerWidget {
       title: '删除数据库',
       message: '确定删除数据库「$name」？该操作将删除其中全部数据，不可恢复。',
       confirmText: '删除',
-      confirmColor: TdTokens.danger,
+      confirmColor: ShadTokens.destructive,
     );
     if (!ok) return;
     try {
@@ -176,14 +176,14 @@ class _DatabaseListPanel extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: TdTokens.space4, vertical: TdTokens.space3),
+          padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space4, vertical: ShadTokens.space3),
           child: Row(
             children: [
-              const Icon(RemixIcons.database_2_line, size: 16, color: TdTokens.brand),
-              const SizedBox(width: TdTokens.space2),
+              const Icon(RemixIcons.database_2_line, size: 16, color: ShadTokens.primary),
+              const SizedBox(width: ShadTokens.space2),
               const Text(
                 '数据库',
-                style: TextStyle(fontSize: TdTokens.fontTitle, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600),
               ),
               const Spacer(),
               OutlinedButton.icon(
@@ -191,7 +191,7 @@ class _DatabaseListPanel extends ConsumerWidget {
                 icon: const Icon(RemixIcons.add_line, size: 16),
                 label: const Text('新建数据库'),
               ),
-              const SizedBox(width: TdTokens.space2),
+              const SizedBox(width: ShadTokens.space2),
               IconButton(
                 visualDensity: VisualDensity.compact,
                 tooltip: '刷新',
@@ -205,7 +205,7 @@ class _DatabaseListPanel extends ConsumerWidget {
         Expanded(
           child: result.when(
             loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            error: (e, _) => Center(child: Text('加载失败：$e', style: const TextStyle(color: TdTokens.danger))),
+            error: (e, _) => Center(child: Text('加载失败：$e', style: const TextStyle(color: ShadTokens.destructive))),
             data: (r) => _DatabaseTable(result: r, onDelete: (n) => _deleteDatabase(context, ref, n)),
           ),
         ),
@@ -228,9 +228,9 @@ class _DatabaseTable extends ConsumerWidget {
       scrollDirection: Axis.horizontal,
       child: SingleChildScrollView(
         child: DataTable(
-          headingRowColor: WidgetStatePropertyAll(TdTokens.bgComponent),
-          horizontalMargin: TdTokens.space4,
-          columnSpacing: TdTokens.space4,
+          headingRowColor: WidgetStatePropertyAll(ShadTokens.muted),
+          horizontalMargin: ShadTokens.space4,
+          columnSpacing: ShadTokens.space4,
           columns: [for (final name in columns) DataColumn(label: Text(name))],
           rows: [
             for (final row in result.rows)
@@ -257,7 +257,7 @@ class _DatabaseTable extends ConsumerWidget {
                         IconButton(
                           visualDensity: VisualDensity.compact,
                           tooltip: '删除',
-                          icon: const Icon(RemixIcons.delete_bin_line, size: 16, color: TdTokens.danger),
+                          icon: const Icon(RemixIcons.delete_bin_line, size: 16, color: ShadTokens.destructive),
                           onPressed: () => onDelete('${row[dbCol]}'),
                         ),
                       ],
@@ -283,7 +283,7 @@ class _DevicePanel extends ConsumerWidget {
     final result = ref.watch(timeseriesListProvider(device.path));
     return result.when(
       loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      error: (e, _) => Center(child: Text('加载失败：$e', style: const TextStyle(color: TdTokens.danger))),
+      error: (e, _) => Center(child: Text('加载失败：$e', style: const TextStyle(color: ShadTokens.destructive))),
       data: (r) => ResultTable(columns: r.columnNames, rows: r.rows, elapsedMs: r.elapsedMs),
     );
   }
@@ -302,7 +302,7 @@ class _TimeseriesDetail extends ConsumerWidget {
       title: '删除测点',
       message: '确定删除测点「${node.path}」？',
       confirmText: '删除',
-      confirmColor: TdTokens.danger,
+      confirmColor: ShadTokens.destructive,
     );
     if (!ok) return;
     try {
@@ -323,13 +323,13 @@ class _TimeseriesDetail extends ConsumerWidget {
       children: [
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(TdTokens.space4),
+            padding: const EdgeInsets.all(ShadTokens.space4),
             children: [
-              Text(node.path, style: const TextStyle(fontSize: TdTokens.fontTitle, fontWeight: FontWeight.w600)),
-              const SizedBox(height: TdTokens.space4),
+              Text(node.path, style: const TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600)),
+              const SizedBox(height: ShadTokens.space4),
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(TdTokens.space4),
+                  padding: const EdgeInsets.all(ShadTokens.space4),
                   child: Column(
                     children: [
                       for (final entry in node.attrs.entries)
@@ -342,7 +342,7 @@ class _TimeseriesDetail extends ConsumerWidget {
                                 width: 140,
                                 child: Text(
                                   entry.key,
-                                  style: const TextStyle(color: TdTokens.textSecondary),
+                                  style: const TextStyle(color: ShadTokens.mutedForeground),
                                 ),
                               ),
                               Expanded(
@@ -362,10 +362,10 @@ class _TimeseriesDetail extends ConsumerWidget {
           ),
         ),
         Container(
-          padding: const EdgeInsets.all(TdTokens.space3),
+          padding: const EdgeInsets.all(ShadTokens.space3),
           decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: TdTokens.divider)),
-            color: TdTokens.bgContainer,
+            border: Border(top: BorderSide(color: ShadTokens.divider)),
+            color: ShadTokens.card,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -374,7 +374,7 @@ class _TimeseriesDetail extends ConsumerWidget {
                 onPressed: () => _delete(context, ref),
                 icon: const Icon(RemixIcons.delete_bin_line, size: 16),
                 label: const Text('删除测点'),
-                style: OutlinedButton.styleFrom(foregroundColor: TdTokens.danger),
+                style: OutlinedButton.styleFrom(foregroundColor: ShadTokens.destructive),
               ),
             ],
           ),

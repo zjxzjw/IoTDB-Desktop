@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/models/query_result.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../../../shared/empty_state.dart';
 
 /// 将聚合查询结果解析为折线数据点（x=Time 毫秒时间戳，y=聚合值）
@@ -61,7 +61,7 @@ class DataChart extends StatelessWidget {
         : yRange * 0.1;
 
     return Padding(
-      padding: const EdgeInsets.all(TdTokens.space3),
+      padding: const EdgeInsets.all(ShadTokens.space3),
       child: LineChart(
         LineChartData(
           minX: startMs.toDouble(),
@@ -73,11 +73,11 @@ class DataChart extends StatelessWidget {
             drawVerticalLine: false,
             horizontalInterval: yRange == 0 ? null : yRange / 4,
             getDrawingHorizontalLine: (_) =>
-                FlLine(color: TdTokens.divider, strokeWidth: 1),
+                FlLine(color: ShadTokens.divider, strokeWidth: 1),
           ),
           borderData: FlBorderData(
             show: true,
-            border: Border.all(color: TdTokens.divider),
+            border: Border.all(color: ShadTokens.divider),
           ),
           titlesData: FlTitlesData(
             topTitles: const AxisTitles(
@@ -97,7 +97,7 @@ class DataChart extends StatelessWidget {
                     _formatNumber(v),
                     style: const TextStyle(
                       fontSize: 10,
-                      color: TdTokens.textSecondary,
+                      color: ShadTokens.mutedForeground,
                     ),
                   ),
                 ),
@@ -119,7 +119,7 @@ class DataChart extends StatelessWidget {
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 10,
-                        color: TdTokens.textSecondary,
+                        color: ShadTokens.mutedForeground,
                       ),
                     ),
                   );
@@ -143,12 +143,12 @@ class DataChart extends StatelessWidget {
               spots: spots,
               isCurved: true,
               preventCurveOverShooting: true,
-              color: TdTokens.brand,
+              color: ShadTokens.primary,
               barWidth: 2,
               dotData: const FlDotData(show: false),
               belowBarData: BarAreaData(
                 show: true,
-                color: TdTokens.brand.withValues(alpha: 0.08),
+                color: ShadTokens.primary.withValues(alpha: 0.08),
               ),
             ),
           ],

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/tdesign_tokens.dart';
+import '../../core/theme/shadcn_tokens.dart';
 
 /// 通用确认弹窗，返回 true 表示确认
 Future<bool> showConfirmDialog(
@@ -18,7 +18,7 @@ Future<bool> showConfirmDialog(
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(cancelText)),
         FilledButton(
-          style: FilledButton.styleFrom(backgroundColor: confirmColor ?? TdTokens.brand),
+          style: FilledButton.styleFrom(backgroundColor: confirmColor ?? ShadTokens.primary),
           onPressed: () => Navigator.pop(ctx, true),
           child: Text(confirmText),
         ),

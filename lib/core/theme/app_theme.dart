@@ -1,23 +1,30 @@
 import 'package:flutter/material.dart';
 
-import 'tdesign_tokens.dart';
+import 'shadcn_tokens.dart';
 
 ThemeData buildAppTheme({Brightness brightness = Brightness.light}) {
   final isLight = brightness == Brightness.light;
-  final scheme =
-      ColorScheme.fromSeed(
-        seedColor: TdTokens.brand,
-        brightness: brightness,
-        primary: TdTokens.brand,
-        onPrimary: Colors.white,
-        secondary: TdTokens.brandHover,
-        error: TdTokens.danger,
-        surface: isLight ? TdTokens.bgContainer : const Color(0xFF1F1F1F),
-      ).copyWith(
-        surfaceContainerHighest: isLight
-            ? const Color(0xFFF3F3F3)
-            : const Color(0xFF2A2A2A),
-      );
+
+  final scheme = ColorScheme(
+    brightness: brightness,
+    primary: isLight ? ShadTokens.primary : ShadTokens.primaryDark,
+    onPrimary: isLight
+        ? ShadTokens.primaryForeground
+        : ShadTokens.primaryForegroundDark,
+    primaryContainer: isLight ? ShadTokens.muted : ShadTokens.mutedDark,
+    onPrimaryContainer: isLight
+        ? ShadTokens.foreground
+        : ShadTokens.foregroundDark,
+    secondary: isLight ? ShadTokens.muted : ShadTokens.mutedDark,
+    onSecondary: isLight ? ShadTokens.foreground : ShadTokens.foregroundDark,
+    surface: isLight ? ShadTokens.background : ShadTokens.backgroundDark,
+    onSurface: isLight ? ShadTokens.foreground : ShadTokens.foregroundDark,
+    error: ShadTokens.destructive,
+    onError: ShadTokens.destructiveForeground,
+    outline: isLight ? ShadTokens.border : ShadTokens.borderDark,
+    outlineVariant: isLight ? ShadTokens.border : ShadTokens.borderDark,
+    surfaceContainerHighest: isLight ? ShadTokens.muted : ShadTokens.mutedDark,
+  );
 
   final base = ThemeData(
     useMaterial3: true,
@@ -25,194 +32,215 @@ ThemeData buildAppTheme({Brightness brightness = Brightness.light}) {
     colorScheme: scheme,
     fontFamily: 'PingFang SC',
     scaffoldBackgroundColor: isLight
-        ? TdTokens.bgPage
-        : const Color(0xFF171717),
+        ? ShadTokens.background
+        : ShadTokens.backgroundDark,
   );
 
-  // 组件级令牌：TDesign 风格的统一外观
+  // 组件级令牌：shadcn/ui 统一外观（无阴影、纯边框、8px 圆角体系）
   return base.copyWith(
-    dividerColor: TdTokens.divider,
+    dividerColor: isLight ? ShadTokens.divider : ShadTokens.dividerDark,
     dividerTheme: DividerThemeData(
-      color: isLight ? TdTokens.divider : const Color(0xFF3A3A3A),
+      color: isLight ? ShadTokens.divider : ShadTokens.dividerDark,
       thickness: 1,
       space: 1,
     ),
     textTheme: base.textTheme.copyWith(
       bodyMedium: const TextStyle(
-        fontSize: TdTokens.fontBody,
-        color: TdTokens.textPrimary,
+        fontSize: ShadTokens.fontBody,
+        color: ShadTokens.foreground,
       ),
       bodySmall: const TextStyle(
-        fontSize: TdTokens.fontAux,
-        color: TdTokens.textSecondary,
+        fontSize: ShadTokens.fontAux,
+        color: ShadTokens.mutedForeground,
       ),
       titleMedium: const TextStyle(
-        fontSize: TdTokens.fontTitle,
+        fontSize: ShadTokens.fontTitle,
         fontWeight: FontWeight.w600,
-        color: TdTokens.textPrimary,
+        color: ShadTokens.foreground,
       ),
       titleLarge: const TextStyle(
-        fontSize: TdTokens.fontPage,
+        fontSize: ShadTokens.fontPage,
         fontWeight: FontWeight.w600,
-        color: TdTokens.textPrimary,
+        color: ShadTokens.foreground,
       ),
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: isLight ? TdTokens.bgContainer : const Color(0xFF1F1F1F),
-      elevation: 0.5,
+      backgroundColor:
+          isLight ? ShadTokens.background : ShadTokens.backgroundDark,
+      elevation: 0,
+      scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
       titleTextStyle: const TextStyle(
-        fontSize: TdTokens.fontTitle,
+        fontSize: ShadTokens.fontTitle,
         fontWeight: FontWeight.w600,
-        color: TdTokens.textPrimary,
+        color: ShadTokens.foreground,
       ),
     ),
     cardTheme: CardThemeData(
-      elevation: 0.5,
-      color: isLight ? TdTokens.bgContainer : const Color(0xFF1F1F1F),
+      elevation: 0,
+      color: isLight ? ShadTokens.card : ShadTokens.cardDark,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusMedium),
         side: BorderSide(
-          color: isLight ? TdTokens.border : const Color(0xFF3A3A3A),
+          color: isLight ? ShadTokens.border : ShadTokens.borderDark,
         ),
       ),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: isLight ? TdTokens.bgContainer : const Color(0xFF1F1F1F),
+      backgroundColor: isLight ? ShadTokens.card : ShadTokens.cardDark,
       surfaceTintColor: Colors.transparent,
+      shadowColor: const Color(0x33000000),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TdTokens.radiusLarge),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusLarge),
       ),
       titleTextStyle: const TextStyle(
-        fontSize: TdTokens.fontTitle,
+        fontSize: ShadTokens.fontTitle,
         fontWeight: FontWeight.w600,
-        color: TdTokens.textPrimary,
+        color: ShadTokens.foreground,
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       isDense: true,
       hoverColor: Colors.transparent,
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: TdTokens.space3,
+        horizontal: ShadTokens.space3,
         vertical: 10,
       ),
-      filled: true,
-      fillColor: isLight ? const Color(0x0A000000) : const Color(0x1FFFFFFF),
+      filled: false,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
         borderSide: BorderSide(
-          color: isLight ? TdTokens.border : const Color(0xFF3A3A3A),
+          color: isLight ? ShadTokens.border : ShadTokens.borderDark,
         ),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
         borderSide: BorderSide(
-          color: isLight ? TdTokens.border : const Color(0xFF3A3A3A),
+          color: isLight ? ShadTokens.border : ShadTokens.borderDark,
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
-        borderSide: const BorderSide(color: TdTokens.brand, width: 1.5),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+        borderSide: BorderSide(
+          color: isLight ? ShadTokens.ring : ShadTokens.ringDark,
+          width: 2,
+        ),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
-        borderSide: const BorderSide(color: TdTokens.danger),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+        borderSide: const BorderSide(color: ShadTokens.destructive),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        backgroundColor: TdTokens.brand,
-        foregroundColor: Colors.white,
-        disabledBackgroundColor: TdTokens.brandDisabled,
+        backgroundColor: ShadTokens.primary,
+        foregroundColor: ShadTokens.primaryForeground,
+        disabledBackgroundColor: ShadTokens.primaryDisabled,
+        disabledForegroundColor: ShadTokens.primaryForeground.withValues(
+          alpha: 0.5,
+        ),
         elevation: 0,
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
+          borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
         ),
         textStyle: const TextStyle(
-          fontSize: TdTokens.fontBody,
+          fontSize: ShadTokens.fontBody,
           fontWeight: FontWeight.w500,
         ),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: TdTokens.brand,
-        foregroundColor: Colors.white,
-        disabledBackgroundColor: TdTokens.brandDisabled,
+        backgroundColor: ShadTokens.primary,
+        foregroundColor: ShadTokens.primaryForeground,
+        disabledBackgroundColor: ShadTokens.primaryDisabled,
+        disabledForegroundColor: ShadTokens.primaryForeground.withValues(
+          alpha: 0.5,
+        ),
         elevation: 0,
         shadowColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
+          borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
         ),
         textStyle: const TextStyle(
-          fontSize: TdTokens.fontBody,
+          fontSize: ShadTokens.fontBody,
           fontWeight: FontWeight.w500,
         ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: TdTokens.brand,
-        side: const BorderSide(color: TdTokens.border),
+        foregroundColor: ShadTokens.foreground,
+        side: BorderSide(
+          color: isLight ? ShadTokens.border : ShadTokens.borderDark,
+        ),
+        backgroundColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
+          borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
         ),
         textStyle: const TextStyle(
-          fontSize: TdTokens.fontBody,
+          fontSize: ShadTokens.fontBody,
           fontWeight: FontWeight.w500,
         ),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: TdTokens.brand,
+        foregroundColor: ShadTokens.foreground,
         textStyle: const TextStyle(
-          fontSize: TdTokens.fontBody,
+          fontSize: ShadTokens.fontBody,
           fontWeight: FontWeight.w500,
         ),
       ),
     ),
     tabBarTheme: TabBarThemeData(
-      labelColor: TdTokens.brand,
-      unselectedLabelColor: TdTokens.textSecondary,
-      indicatorColor: TdTokens.brand,
+      labelColor: ShadTokens.foreground,
+      unselectedLabelColor: ShadTokens.mutedForeground,
+      indicatorColor: ShadTokens.foreground,
       dividerColor: Colors.transparent,
       labelStyle: const TextStyle(
-        fontSize: TdTokens.fontBody,
+        fontSize: ShadTokens.fontBody,
         fontWeight: FontWeight.w500,
       ),
-      unselectedLabelStyle: const TextStyle(fontSize: TdTokens.fontBody),
+      unselectedLabelStyle: const TextStyle(fontSize: ShadTokens.fontBody),
     ),
     dataTableTheme: DataTableThemeData(
       headingRowColor: WidgetStatePropertyAll(
-        isLight ? const Color(0xFFF7F7F7) : const Color(0xFF262626),
+        isLight ? ShadTokens.muted : ShadTokens.mutedDark,
       ),
       headingTextStyle: TextStyle(
-        fontSize: TdTokens.fontAux,
+        fontSize: ShadTokens.fontAux,
         fontWeight: FontWeight.w600,
-        color: isLight ? TdTokens.textSecondary : Colors.white70,
+        color: isLight
+            ? ShadTokens.mutedForeground
+            : ShadTokens.mutedForegroundDark,
       ),
       dataTextStyle: TextStyle(
-        fontSize: TdTokens.fontBody,
-        color: isLight ? TdTokens.textPrimary : Colors.white,
+        fontSize: ShadTokens.fontBody,
+        color: isLight ? ShadTokens.foreground : ShadTokens.foregroundDark,
       ),
       dividerThickness: 1,
+      horizontalMargin: ShadTokens.space4,
     ),
-    progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: TdTokens.brand,
+    progressIndicatorTheme: ProgressIndicatorThemeData(
+      color: isLight ? ShadTokens.primary : ShadTokens.primaryDark,
     ),
-    iconTheme: const IconThemeData(color: TdTokens.textSecondary),
+    iconTheme: IconThemeData(
+      color: isLight ? ShadTokens.mutedForeground : ShadTokens.mutedForegroundDark,
+    ),
     snackBarTheme: SnackBarThemeData(
       backgroundColor: isLight
-          ? const Color(0xF2000000)
-          : const Color(0xFFE8E8E8),
-      contentTextStyle: TextStyle(color: isLight ? Colors.white : Colors.black),
+          ? const Color(0xFF18181B)
+          : const Color(0xFFE4E4E7),
+      contentTextStyle: TextStyle(
+        color: isLight ? Colors.white : Colors.black87,
+      ),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
       ),
     ),
   );

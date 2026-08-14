@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../../../core/utils/sql_builder.dart';
 import '../data/database_providers.dart';
 
@@ -24,16 +24,16 @@ Future<void> showCreateTimeseriesSheet(BuildContext context, WidgetRef ref, {Str
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: TdTokens.bgContainer,
+    backgroundColor: ShadTokens.card,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(TdTokens.radiusLarge)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(ShadTokens.radiusLarge)),
     ),
     builder: (context) => Padding(
       padding: EdgeInsets.only(
-        left: TdTokens.space6,
-        right: TdTokens.space6,
-        top: TdTokens.space4,
-        bottom: MediaQuery.of(context).viewInsets.bottom + TdTokens.space6,
+        left: ShadTokens.space6,
+        right: ShadTokens.space6,
+        top: ShadTokens.space4,
+        bottom: MediaQuery.of(context).viewInsets.bottom + ShadTokens.space6,
       ),
       child: CreateTimeseriesSheet(devicePrefix: devicePrefix),
     ),
@@ -131,9 +131,9 @@ class _CreateTimeseriesSheetState extends ConsumerState<CreateTimeseriesSheet> {
             children: [
               Row(
                 children: [
-                  const Icon(RemixIcons.add_circle_line, size: 18, color: TdTokens.brand),
-                  const SizedBox(width: TdTokens.space2),
-                  const Text('新建测点', style: TextStyle(fontSize: TdTokens.fontTitle, fontWeight: FontWeight.w600)),
+                  const Icon(RemixIcons.add_circle_line, size: 18, color: ShadTokens.primary),
+                  const SizedBox(width: ShadTokens.space2),
+                  const Text('新建测点', style: TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600)),
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -142,19 +142,19 @@ class _CreateTimeseriesSheetState extends ConsumerState<CreateTimeseriesSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _device,
                 decoration: const InputDecoration(labelText: '设备路径 *', hintText: '如：root.test.d1'),
                 validator: (v) => (v == null || v.trim().isEmpty) ? '请输入设备路径' : null,
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _name,
                 decoration: const InputDecoration(labelText: '测点名 *', hintText: '如：temperature 或 sub.temp'),
                 validator: (v) => (v == null || v.trim().isEmpty) ? '请输入测点名' : null,
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               Row(
                 children: [
                   Expanded(
@@ -165,7 +165,7 @@ class _CreateTimeseriesSheetState extends ConsumerState<CreateTimeseriesSheet> {
                       onChanged: (v) => setState(() => _dataType = v ?? 'FLOAT'),
                     ),
                   ),
-                  const SizedBox(width: TdTokens.space3),
+                  const SizedBox(width: ShadTokens.space3),
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       initialValue: null,
@@ -174,7 +174,7 @@ class _CreateTimeseriesSheetState extends ConsumerState<CreateTimeseriesSheet> {
                       onChanged: (v) => setState(() => _encoding = v ?? ''),
                     ),
                   ),
-                  const SizedBox(width: TdTokens.space3),
+                  const SizedBox(width: ShadTokens.space3),
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       initialValue: _compressor,
@@ -185,7 +185,7 @@ class _CreateTimeseriesSheetState extends ConsumerState<CreateTimeseriesSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _tags,
                 decoration: const InputDecoration(
@@ -193,7 +193,7 @@ class _CreateTimeseriesSheetState extends ConsumerState<CreateTimeseriesSheet> {
                   hintText: '如：unit=Celsius, location=hall1',
                 ),
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _attrs,
                 decoration: const InputDecoration(
@@ -201,7 +201,7 @@ class _CreateTimeseriesSheetState extends ConsumerState<CreateTimeseriesSheet> {
                   hintText: '如：description=室内温度',
                 ),
               ),
-              const SizedBox(height: TdTokens.space4),
+              const SizedBox(height: ShadTokens.space4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -209,7 +209,7 @@ class _CreateTimeseriesSheetState extends ConsumerState<CreateTimeseriesSheet> {
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text('取消'),
                   ),
-                  const SizedBox(width: TdTokens.space2),
+                  const SizedBox(width: ShadTokens.space2),
                   FilledButton(
                     onPressed: _submitting ? null : _submit,
                     child: _submitting

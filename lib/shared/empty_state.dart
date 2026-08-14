@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:remixicon/remixicon.dart';
 
-import '../../core/theme/tdesign_tokens.dart';
+import '../../core/theme/shadcn_tokens.dart';
 
 /// 空状态占位（图标 + 标题 + 可选描述/按钮）
 class EmptyState extends StatelessWidget {
@@ -24,18 +24,18 @@ class EmptyState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 40, color: TdTokens.textPlaceholder),
-          const SizedBox(height: TdTokens.space3),
-          Text(title, style: const TextStyle(fontSize: TdTokens.fontBody, color: TdTokens.textSecondary)),
+          Icon(icon, size: 40, color: ShadTokens.placeholder),
+          const SizedBox(height: ShadTokens.space3),
+          Text(title, style: const TextStyle(fontSize: ShadTokens.fontBody, color: ShadTokens.mutedForeground)),
           if (description != null) ...[
-            const SizedBox(height: TdTokens.space1),
+            const SizedBox(height: ShadTokens.space1),
             Text(
               description!,
-              style: const TextStyle(fontSize: TdTokens.fontAux, color: TdTokens.textPlaceholder),
+              style: const TextStyle(fontSize: ShadTokens.fontAux, color: ShadTokens.placeholder),
             ),
           ],
           if (action != null) ...[
-            const SizedBox(height: TdTokens.space4),
+            const SizedBox(height: ShadTokens.space4),
             action!,
           ],
         ],

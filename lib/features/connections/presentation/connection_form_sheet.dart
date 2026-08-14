@@ -5,7 +5,7 @@ import 'package:remixicon/remixicon.dart';
 import '../../../core/models/connection.dart';
 import '../../../core/network/iotdb_client.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 
 /// 新建/编辑连接表单（居中 Dialog）
 Future<void> showConnectionFormDialog(
@@ -20,14 +20,14 @@ Future<void> showConnectionFormDialog(
     barrierColor: Colors.black54,
     transitionDuration: const Duration(milliseconds: 220),
     pageBuilder: (context, animation, secondaryAnimation) => Dialog(
-      backgroundColor: TdTokens.bgContainer,
+      backgroundColor: ShadTokens.card,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(TdTokens.radiusLarge),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusLarge),
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(
-          horizontal: TdTokens.space6,
-          vertical: TdTokens.space4,
+          horizontal: ShadTokens.space6,
+          vertical: ShadTokens.space4,
         ),
         child: ConnectionFormDialog(editing: editing),
       ),
@@ -192,13 +192,13 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                   const Icon(
                     RemixIcons.link_m,
                     size: 18,
-                    color: TdTokens.brand,
+                    color: ShadTokens.primary,
                   ),
-                  const SizedBox(width: TdTokens.space2),
+                  const SizedBox(width: ShadTokens.space2),
                   Text(
                     widget.editing == null ? '新建连接' : '编辑连接',
                     style: const TextStyle(
-                      fontSize: TdTokens.fontTitle,
+                      fontSize: ShadTokens.fontTitle,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -210,7 +210,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space4),
+              const SizedBox(height: ShadTokens.space4),
               _LabeledField(
                 label: '连接名称 *',
                 child: TextFormField(
@@ -219,7 +219,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                   decoration: InputDecoration(
                     filled: false,
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: TdTokens.space3,
+                      horizontal: ShadTokens.space3,
                       vertical: 12,
                     ),
                   ),
@@ -227,7 +227,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                       (v == null || v.trim().isEmpty) ? '请输入连接名称' : null,
                 ),
               ),
-              const SizedBox(height: TdTokens.space4),
+              const SizedBox(height: ShadTokens.space4),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -240,7 +240,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                         decoration: InputDecoration(
                           filled: false,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: TdTokens.space3,
+                            horizontal: ShadTokens.space3,
                             vertical: 12,
                           ),
                         ),
@@ -250,7 +250,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: TdTokens.space4),
+                  const SizedBox(width: ShadTokens.space4),
                   _LabeledField(
                     label: 'REST 端口 *',
                     child: SizedBox(
@@ -261,7 +261,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                         decoration: InputDecoration(
                           filled: false,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: TdTokens.space3,
+                            horizontal: ShadTokens.space3,
                             vertical: 12,
                           ),
                         ),
@@ -277,7 +277,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space4),
+              const SizedBox(height: ShadTokens.space4),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -290,7 +290,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                         decoration: InputDecoration(
                           filled: false,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: TdTokens.space3,
+                            horizontal: ShadTokens.space3,
                             vertical: 12,
                           ),
                           hintText: 'root',
@@ -298,7 +298,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: TdTokens.space4),
+                  const SizedBox(width: ShadTokens.space4),
                   Expanded(
                     child: _LabeledField(
                       label: '密码',
@@ -309,7 +309,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                         decoration: InputDecoration(
                           filled: false,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: TdTokens.space3,
+                            horizontal: ShadTokens.space3,
                             vertical: 12,
                           ),
                         ),
@@ -318,7 +318,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space4),
+              const SizedBox(height: ShadTokens.space4),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -331,7 +331,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                         decoration: InputDecoration(
                           filled: false,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: TdTokens.space3,
+                            horizontal: ShadTokens.space3,
                             vertical: 12,
                           ),
                         ),
@@ -339,7 +339,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                       ),
                     ),
                   ),
-                  const SizedBox(width: TdTokens.space4),
+                  const SizedBox(width: ShadTokens.space4),
                   Expanded(
                     child: SwitchListTile(
                       contentPadding: EdgeInsets.zero,
@@ -381,7 +381,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                           decoration: InputDecoration(
                             filled: false,
                             contentPadding: const EdgeInsets.symmetric(
-                              horizontal: TdTokens.space3,
+                              horizontal: ShadTokens.space3,
                               vertical: 12,
                             ),
                           ),
@@ -391,7 +391,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                     ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space4),
+              const SizedBox(height: ShadTokens.space4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -412,7 +412,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                         onPressed: () => Navigator.of(context).pop(),
                         child: const Text('取消'),
                       ),
-                      const SizedBox(width: TdTokens.space2),
+                      const SizedBox(width: ShadTokens.space2),
                       FilledButton(
                         onPressed: _saving ? null : _save,
                         child: _saving
@@ -454,12 +454,12 @@ class _LabeledField extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontSize: TdTokens.fontAux,
+            fontSize: ShadTokens.fontAux,
             fontWeight: FontWeight.w500,
-            color: TdTokens.textSecondary,
+            color: ShadTokens.mutedForeground,
           ),
         ),
-        const SizedBox(height: TdTokens.space3),
+        const SizedBox(height: ShadTokens.space3),
         child,
       ],
     );

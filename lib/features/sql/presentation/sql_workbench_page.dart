@@ -5,7 +5,7 @@ import 'package:remixicon/remixicon.dart';
 
 import '../../../core/network/statement_router.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../../../core/utils/sql_highlighter.dart';
 import '../../database/data/database_providers.dart';
 import '../data/sql_history_provider.dart';
@@ -139,9 +139,9 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
   void _showHistory() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: TdTokens.bgContainer,
+      backgroundColor: ShadTokens.card,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(TdTokens.radiusLarge)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(ShadTokens.radiusLarge)),
       ),
       builder: (ctx) => Consumer(
         builder: (context, ref, _) {
@@ -151,12 +151,12 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(TdTokens.space4, TdTokens.space3, TdTokens.space2, 0),
+                  padding: const EdgeInsets.fromLTRB(ShadTokens.space4, ShadTokens.space3, ShadTokens.space2, 0),
                   child: Row(
                     children: [
-                      const Icon(RemixIcons.history_line, size: 18, color: TdTokens.brand),
-                      const SizedBox(width: TdTokens.space2),
-                      const Text('执行历史', style: TextStyle(fontSize: TdTokens.fontTitle, fontWeight: FontWeight.w600)),
+                      const Icon(RemixIcons.history_line, size: 18, color: ShadTokens.primary),
+                      const SizedBox(width: ShadTokens.space2),
+                      const Text('执行历史', style: TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600)),
                       const Spacer(),
                       TextButton(
                         onPressed: () => ref.read(sqlHistoryProvider.notifier).clear(),
@@ -174,7 +174,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
                 Expanded(
                   child: list.isEmpty
                       ? const Center(
-                          child: Text('暂无历史', style: TextStyle(color: TdTokens.textPlaceholder)),
+                          child: Text('暂无历史', style: TextStyle(color: ShadTokens.placeholder)),
                         )
                       : ListView.separated(
                           itemCount: list.length,
@@ -186,7 +186,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
                               leading: Icon(
                                 e.success ? RemixIcons.check_line : RemixIcons.close_line,
                                 size: 16,
-                                color: e.success ? TdTokens.success : TdTokens.danger,
+                                color: e.success ? ShadTokens.success : ShadTokens.destructive,
                               ),
                               title: Text(
                                 e.sql,
@@ -196,7 +196,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
                               ),
                               trailing: Text(
                                 e.elapsedMs != null ? '${e.elapsedMs}ms' : '',
-                                style: const TextStyle(fontSize: 11, color: TdTokens.textPlaceholder),
+                                style: const TextStyle(fontSize: 11, color: ShadTokens.placeholder),
                               ),
                               onTap: () {
                                 final tab = _current;
@@ -236,7 +236,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
           child: current == null
               ? const SizedBox.shrink()
               : Padding(
-                  padding: const EdgeInsets.fromLTRB(TdTokens.space3, TdTokens.space2, TdTokens.space3, 0),
+                  padding: const EdgeInsets.fromLTRB(ShadTokens.space3, ShadTokens.space2, ShadTokens.space3, 0),
                   child: SqlEditor(
                     controller: current.controller,
                     focusNode: current.focusNode,
@@ -258,8 +258,8 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: TdTokens.bgContainer,
-        border: Border(bottom: BorderSide(color: TdTokens.divider)),
+        color: ShadTokens.card,
+        border: Border(bottom: BorderSide(color: ShadTokens.divider)),
       ),
       child: Row(
         children: [
@@ -276,7 +276,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
             visualDensity: VisualDensity.compact,
             tooltip: '新建查询',
             onPressed: _addTab,
-            icon: const Icon(RemixIcons.add_line, size: 18, color: TdTokens.brand),
+            icon: const Icon(RemixIcons.add_line, size: 18, color: ShadTokens.primary),
           ),
           IconButton(
             visualDensity: VisualDensity.compact,
@@ -284,13 +284,13 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
             onPressed: _showHistory,
             icon: const Icon(RemixIcons.history_line, size: 18),
           ),
-          const SizedBox(width: TdTokens.space2),
+          const SizedBox(width: ShadTokens.space2),
           FilledButton.icon(
             onPressed: _run,
             icon: const Icon(RemixIcons.play_line, size: 16),
             label: const Text('运行'),
           ),
-          const SizedBox(width: TdTokens.space3),
+          const SizedBox(width: ShadTokens.space3),
         ],
       ),
     );
@@ -302,9 +302,9 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     return InkWell(
       onTap: () => setState(() => _active = index),
       child: Container(
-        padding: const EdgeInsets.only(left: TdTokens.space3),
+        padding: const EdgeInsets.only(left: ShadTokens.space3),
         decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: selected ? TdTokens.brand : Colors.transparent, width: 2)),
+          border: Border(bottom: BorderSide(color: selected ? Theme.of(context).colorScheme.primary : Colors.transparent, width: 2)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -312,8 +312,8 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
             Text(
               tab.title,
               style: TextStyle(
-                fontSize: TdTokens.fontBody,
-                color: selected ? TdTokens.brand : TdTokens.textSecondary,
+                fontSize: ShadTokens.fontBody,
+                color: selected ? Theme.of(context).colorScheme.primary : ShadTokens.mutedForeground,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               ),
             ),

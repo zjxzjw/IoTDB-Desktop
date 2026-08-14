@@ -5,7 +5,8 @@ import 'package:remixicon/remixicon.dart';
 import '../../../core/models/connection.dart';
 import '../../../core/network/iotdb_client.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/storage/app_settings_store.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../../../shared/confirm_dialog.dart';
 import '../../connections/presentation/connection_form_sheet.dart';
 import '../../connections/presentation/connection_sidebar.dart';
@@ -14,9 +15,45 @@ import '../../database/presentation/database_page.dart';
 import '../../sql/presentation/sql_workbench_page.dart';
 import '../../users/presentation/users_page.dart';
 
-/// 应用外壳：左侧连接侧边栏 + 右侧内容区
-class HomeShell extends ConsumerWidget {
+/// 应用外壳：左侧连接侧边栏（可拖拽调整宽度）+ 右侧内容区
+class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
+
+  @override
+  ConsumerState<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends ConsumerState<HomeShell> {
+  double _sidebarWidth = AppSettingsStore.defaultSidebarWidth;
+  bool _dragActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.listenManual(sidebarWidthProvider, (prev, next) {
+      if (!_dragActive && next.hasValue && mounted) {
+        setState(() => _sidebarWidth = next.value!);
+      }
+    });
+  }
+
+  void _onDragStart() {
+    _dragActive = true;
+  }
+
+  void _onDrag(double dx) {
+    setState(() {
+      _sidebarWidth = (_sidebarWidth + dx).clamp(
+        AppSettingsStore.minSidebarWidth,
+        AppSettingsStore.maxSidebarWidth,
+      );
+    });
+  }
+
+  void _onDragEnd() {
+    _dragActive = false;
+    ref.read(sidebarWidthProvider.notifier).setWidth(_sidebarWidth);
+  }
 
   Future<void> _openWorkspace(
     BuildContext context,
@@ -32,40 +69,49 @@ class HomeShell extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    ref.watch(sidebarWidthProvider);
+
     return Scaffold(
       body: Row(
         children: [
-          ref
-              .watch(connectionStoreProvider)
-              .when(
-                loading: () => const ConnectionSidebar(
-                  connections: [],
-                  loading: true,
-                  onOpen: _noop,
-                  onTest: _noop,
-                  onEdit: _noop,
-                  onDelete: _noop,
+          SizedBox(
+            width: _sidebarWidth,
+            child: ref
+                .watch(connectionStoreProvider)
+                .when(
+                  loading: () => const ConnectionSidebar(
+                    connections: [],
+                    loading: true,
+                    onOpen: _noop,
+                    onTest: _noop,
+                    onEdit: _noop,
+                    onDelete: _noop,
+                  ),
+                  error: (e, _) => const ConnectionSidebar(
+                    connections: [],
+                    loading: false,
+                    onOpen: _noop,
+                    onTest: _noop,
+                    onEdit: _noop,
+                    onDelete: _noop,
+                  ),
+                  data: (list) => ConnectionSidebar(
+                    connections: list,
+                    loading: false,
+                    onOpen: (c) => _openWorkspace(context, ref, c),
+                    onTest: (c) => _testConnection(context, ref, c),
+                    onEdit: (c) =>
+                        showConnectionFormDialog(context, ref, editing: c),
+                    onDelete: (c) => _deleteConnection(context, ref, c),
+                  ),
                 ),
-                error: (e, _) => const ConnectionSidebar(
-                  connections: [],
-                  loading: false,
-                  onOpen: _noop,
-                  onTest: _noop,
-                  onEdit: _noop,
-                  onDelete: _noop,
-                ),
-                data: (list) => ConnectionSidebar(
-                  connections: list,
-                  loading: false,
-                  onOpen: (c) => _openWorkspace(context, ref, c),
-                  onTest: (c) => _testConnection(context, ref, c),
-                  onEdit: (c) =>
-                      showConnectionFormDialog(context, ref, editing: c),
-                  onDelete: (c) => _deleteConnection(context, ref, c),
-                ),
-              ),
-          const VerticalDivider(width: 1),
+          ),
+          _SidebarResizeHandle(
+            onDragStart: _onDragStart,
+            onDrag: _onDrag,
+            onDragEnd: _onDragEnd,
+          ),
           const Expanded(child: _WelcomePane()),
         ],
       ),
@@ -110,7 +156,7 @@ class HomeShell extends ConsumerWidget {
       title: '删除连接',
       message: '确定删除连接「${conn.name}」？该操作不可恢复。',
       confirmText: '删除',
-      confirmColor: TdTokens.danger,
+      confirmColor: ShadTokens.destructive,
     );
     if (confirmed) {
       await ref.read(connectionStoreProvider.notifier).remove(conn.id);
@@ -137,16 +183,53 @@ class _WelcomePane extends ConsumerWidget {
           Text(
             list.isEmpty ? '欢迎使用 IoTDB Desktop' : '选择一个连接开始管理',
             style: const TextStyle(
-              fontSize: TdTokens.fontPage,
+              fontSize: ShadTokens.fontPage,
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: TdTokens.space2),
+          const SizedBox(height: ShadTokens.space2),
           const Text(
             '左侧管理 IoTDB REST 连接，双击或点击连接进入工作区',
-            style: TextStyle(fontSize: 13, color: TdTokens.textSecondary),
+            style: TextStyle(fontSize: 13, color: ShadTokens.mutedForeground),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 侧边栏右缘拖拽手柄：鼠标悬停显示调整光标，拖拽改变宽度
+class _SidebarResizeHandle extends StatelessWidget {
+  final VoidCallback onDragStart;
+  final ValueChanged<double> onDrag;
+  final VoidCallback onDragEnd;
+
+  const _SidebarResizeHandle({
+    required this.onDragStart,
+    required this.onDrag,
+    required this.onDragEnd,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeLeftRight,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onHorizontalDragStart: (_) => onDragStart(),
+        onHorizontalDragUpdate: (d) => onDrag(d.delta.dx),
+        onHorizontalDragEnd: (_) => onDragEnd(),
+        onHorizontalDragCancel: onDragEnd,
+        child: Container(
+          width: 6,
+          color: Colors.transparent,
+          child: Center(
+            child: Container(
+              width: 1,
+              color: ShadTokens.border,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -169,7 +252,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
     if (conn == null) {
       return const Scaffold(
         body: Center(
-          child: Text('未打开连接', style: TextStyle(color: TdTokens.textSecondary)),
+          child: Text('未打开连接', style: TextStyle(color: ShadTokens.mutedForeground)),
         ),
       );
     }
@@ -177,22 +260,22 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
       length: 4,
       child: Scaffold(
         appBar: AppBar(
-          titleSpacing: TdTokens.space4,
+          titleSpacing: ShadTokens.space4,
           title: Row(
             children: [
               const Icon(
                 RemixIcons.database_line,
                 size: 18,
-                color: TdTokens.brand,
+                color: ShadTokens.primary,
               ),
-              const SizedBox(width: TdTokens.space2),
+              const SizedBox(width: ShadTokens.space2),
               Text(conn.name),
-              const SizedBox(width: TdTokens.space3),
+              const SizedBox(width: ShadTokens.space3),
               Text(
                 '${conn.host}:${conn.port}',
                 style: const TextStyle(
-                  fontSize: TdTokens.fontAux,
-                  color: TdTokens.textSecondary,
+                  fontSize: ShadTokens.fontAux,
+                  color: ShadTokens.mutedForeground,
                   fontWeight: FontWeight.w400,
                 ),
               ),
@@ -200,7 +283,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
           ),
           actions: [
             Padding(
-              padding: const EdgeInsets.only(right: TdTokens.space3),
+              padding: const EdgeInsets.only(right: ShadTokens.space3),
               child: IconButton(
                 tooltip: '返回连接管理',
                 onPressed: () => Navigator.of(context).pop(),

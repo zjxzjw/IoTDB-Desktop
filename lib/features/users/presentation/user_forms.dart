@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../data/users_providers.dart';
 
 /// 新建用户：`CREATE USER name 'password'`
@@ -11,16 +11,16 @@ Future<void> showCreateUserSheet(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: TdTokens.bgContainer,
+    backgroundColor: ShadTokens.card,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(TdTokens.radiusLarge)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(ShadTokens.radiusLarge)),
     ),
     builder: (context) => Padding(
       padding: EdgeInsets.only(
-        left: TdTokens.space6,
-        right: TdTokens.space6,
-        top: TdTokens.space4,
-        bottom: MediaQuery.of(context).viewInsets.bottom + TdTokens.space6,
+        left: ShadTokens.space6,
+        right: ShadTokens.space6,
+        top: ShadTokens.space4,
+        bottom: MediaQuery.of(context).viewInsets.bottom + ShadTokens.space6,
       ),
       child: const _CreateUserSheet(),
     ),
@@ -79,27 +79,27 @@ class _CreateUserSheetState extends ConsumerState<_CreateUserSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _SheetHeader(title: '新建用户', icon: RemixIcons.user_add_line),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _name,
                 decoration: const InputDecoration(labelText: '用户名 *', hintText: '如：alice'),
                 validator: (v) => (v == null || v.trim().isEmpty) ? '请输入用户名' : null,
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _password,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: '密码 *'),
                 validator: (v) => (v == null || v.isEmpty) ? '请输入密码' : null,
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _confirm,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: '确认密码 *'),
                 validator: (v) => v != _password.text ? '两次输入的密码不一致' : null,
               ),
-              const SizedBox(height: TdTokens.space4),
+              const SizedBox(height: ShadTokens.space4),
               _SheetActions(
                 submitting: _submitting,
                 confirmText: '创建',
@@ -118,16 +118,16 @@ Future<void> showChangePasswordSheet(BuildContext context, WidgetRef ref, String
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: TdTokens.bgContainer,
+    backgroundColor: ShadTokens.card,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(TdTokens.radiusLarge)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(ShadTokens.radiusLarge)),
     ),
     builder: (context) => Padding(
       padding: EdgeInsets.only(
-        left: TdTokens.space6,
-        right: TdTokens.space6,
-        top: TdTokens.space4,
-        bottom: MediaQuery.of(context).viewInsets.bottom + TdTokens.space6,
+        left: ShadTokens.space6,
+        right: ShadTokens.space6,
+        top: ShadTokens.space4,
+        bottom: MediaQuery.of(context).viewInsets.bottom + ShadTokens.space6,
       ),
       child: _ChangePasswordSheet(username: username),
     ),
@@ -185,26 +185,26 @@ class _ChangePasswordSheetState extends ConsumerState<_ChangePasswordSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const _SheetHeader(title: '修改密码', icon: RemixIcons.key_2_line),
-              const SizedBox(height: TdTokens.space2),
+              const SizedBox(height: ShadTokens.space2),
               Text(
                 '用户：${widget.username}',
-                style: const TextStyle(fontSize: 13, color: TdTokens.textSecondary),
+                style: const TextStyle(fontSize: 13, color: ShadTokens.mutedForeground),
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _password,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: '新密码 *'),
                 validator: (v) => (v == null || v.isEmpty) ? '请输入新密码' : null,
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _confirm,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: '确认新密码 *'),
                 validator: (v) => v != _password.text ? '两次输入的密码不一致' : null,
               ),
-              const SizedBox(height: TdTokens.space4),
+              const SizedBox(height: ShadTokens.space4),
               _SheetActions(
                 submitting: _submitting,
                 confirmText: '保存',
@@ -223,16 +223,16 @@ Future<void> showCreateRoleSheet(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: TdTokens.bgContainer,
+    backgroundColor: ShadTokens.card,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(TdTokens.radiusLarge)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(ShadTokens.radiusLarge)),
     ),
     builder: (context) => Padding(
       padding: EdgeInsets.only(
-        left: TdTokens.space6,
-        right: TdTokens.space6,
-        top: TdTokens.space4,
-        bottom: MediaQuery.of(context).viewInsets.bottom + TdTokens.space6,
+        left: ShadTokens.space6,
+        right: ShadTokens.space6,
+        top: ShadTokens.space4,
+        bottom: MediaQuery.of(context).viewInsets.bottom + ShadTokens.space6,
       ),
       child: const _CreateRoleSheet(),
     ),
@@ -286,13 +286,13 @@ class _CreateRoleSheetState extends ConsumerState<_CreateRoleSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const _SheetHeader(title: '新建角色', icon: RemixIcons.user_star_line),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _name,
                 decoration: const InputDecoration(labelText: '角色名 *', hintText: '如：readonly'),
                 validator: (v) => (v == null || v.trim().isEmpty) ? '请输入角色名' : null,
               ),
-              const SizedBox(height: TdTokens.space4),
+              const SizedBox(height: ShadTokens.space4),
               _SheetActions(
                 submitting: _submitting,
                 confirmText: '创建',
@@ -315,16 +315,16 @@ Future<void> showGrantPrivilegeSheet(
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: TdTokens.bgContainer,
+    backgroundColor: ShadTokens.card,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(TdTokens.radiusLarge)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(ShadTokens.radiusLarge)),
     ),
     builder: (context) => Padding(
       padding: EdgeInsets.only(
-        left: TdTokens.space6,
-        right: TdTokens.space6,
-        top: TdTokens.space4,
-        bottom: MediaQuery.of(context).viewInsets.bottom + TdTokens.space6,
+        left: ShadTokens.space6,
+        right: ShadTokens.space6,
+        top: ShadTokens.space4,
+        bottom: MediaQuery.of(context).viewInsets.bottom + ShadTokens.space6,
       ),
       child: _GrantPrivilegeSheet(target: target),
     ),
@@ -406,15 +406,15 @@ class _GrantPrivilegeSheetState extends ConsumerState<_GrantPrivilegeSheet> {
                 title: '授权（${widget.target.kind.label} ${widget.target.name}）',
                 icon: RemixIcons.shield_check_line,
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               const Text(
                 '选择权限（可多选）',
-                style: TextStyle(fontSize: TdTokens.fontBody, fontWeight: FontWeight.w500),
+                style: TextStyle(fontSize: ShadTokens.fontBody, fontWeight: FontWeight.w500),
               ),
-              const SizedBox(height: TdTokens.space2),
+              const SizedBox(height: ShadTokens.space2),
               Wrap(
-                spacing: TdTokens.space2,
-                runSpacing: TdTokens.space2,
+                spacing: ShadTokens.space2,
+                runSpacing: ShadTokens.space2,
                 children: [
                   for (final p in Privileges.allGrantable)
                     FilterChip(
@@ -425,7 +425,7 @@ class _GrantPrivilegeSheetState extends ConsumerState<_GrantPrivilegeSheet> {
                     ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _scope,
                 enabled: !_hasGlobal,
@@ -440,7 +440,7 @@ class _GrantPrivilegeSheetState extends ConsumerState<_GrantPrivilegeSheet> {
                 validator: (v) => (v == null || v.trim().isEmpty) ? '请输入作用路径' : null,
               ),
               if (widget.target.kind == PrivilegeKind.user) ...[
-                const SizedBox(height: TdTokens.space2),
+                const SizedBox(height: ShadTokens.space2),
                 CheckboxListTile(
                   contentPadding: EdgeInsets.zero,
                   dense: true,
@@ -449,7 +449,7 @@ class _GrantPrivilegeSheetState extends ConsumerState<_GrantPrivilegeSheet> {
                   onChanged: (v) => setState(() => _grantOption = v ?? false),
                 ),
               ],
-              const SizedBox(height: TdTokens.space4),
+              const SizedBox(height: ShadTokens.space4),
               _SheetActions(
                 submitting: _submitting,
                 confirmText: '授权',
@@ -474,12 +474,12 @@ class _SheetHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: TdTokens.brand),
-        const SizedBox(width: TdTokens.space2),
+        Icon(icon, size: 18, color: ShadTokens.primary),
+        const SizedBox(width: ShadTokens.space2),
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(fontSize: TdTokens.fontTitle, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -514,7 +514,7 @@ class _SheetActions extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('取消'),
         ),
-        const SizedBox(width: TdTokens.space2),
+        const SizedBox(width: ShadTokens.space2),
         FilledButton(
           onPressed: submitting ? null : onSubmit,
           child: submitting

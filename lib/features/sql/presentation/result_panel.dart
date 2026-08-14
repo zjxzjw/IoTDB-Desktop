@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../../../core/models/query_result.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../../../shared/empty_state.dart';
 import '../../../shared/result_table.dart';
 
@@ -64,13 +64,13 @@ class ResultPanel extends StatelessWidget {
         if (results.length > 1)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: TdTokens.space4, vertical: 6),
-            color: TdTokens.bgPage,
+            padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space4, vertical: 6),
+            color: ShadTokens.muted,
             child: Text(
               '共 ${results.length} 条语句，失败 $errorCount 条',
               style: TextStyle(
-                fontSize: TdTokens.fontAux,
-                color: errorCount > 0 ? TdTokens.danger : TdTokens.textSecondary,
+                fontSize: ShadTokens.fontAux,
+                color: errorCount > 0 ? ShadTokens.destructive : ShadTokens.mutedForeground,
               ),
             ),
           ),
@@ -94,28 +94,28 @@ class _ResultItem extends StatelessWidget {
     switch (result.kind) {
       case SqlRunKind.error:
         return Container(
-          margin: const EdgeInsets.all(TdTokens.space4),
-          padding: const EdgeInsets.all(TdTokens.space3),
+          margin: const EdgeInsets.all(ShadTokens.space4),
+          padding: const EdgeInsets.all(ShadTokens.space3),
           decoration: BoxDecoration(
-            color: TdTokens.danger.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
-            border: Border.all(color: TdTokens.danger.withValues(alpha: 0.4)),
+            color: ShadTokens.destructive.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+            border: Border.all(color: ShadTokens.destructive.withValues(alpha: 0.4)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Row(
                 children: [
-                  Icon(RemixIcons.error_warning_line, size: 16, color: TdTokens.danger),
-                  SizedBox(width: TdTokens.space2),
+                  Icon(RemixIcons.error_warning_line, size: 16, color: ShadTokens.destructive),
+                  SizedBox(width: ShadTokens.space2),
                   Text(
                     '执行失败',
-                    style: TextStyle(fontSize: TdTokens.fontBody, fontWeight: FontWeight.w600, color: TdTokens.danger),
+                    style: TextStyle(fontSize: ShadTokens.fontBody, fontWeight: FontWeight.w600, color: ShadTokens.destructive),
                   ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space2),
-              Text('${result.message}', style: const TextStyle(fontSize: TdTokens.fontBody)),
+              const SizedBox(height: ShadTokens.space2),
+              Text('${result.message}', style: const TextStyle(fontSize: ShadTokens.fontBody)),
             ],
           ),
         );
@@ -128,20 +128,20 @@ class _ResultItem extends StatelessWidget {
           );
         }
         return Container(
-          margin: const EdgeInsets.all(TdTokens.space4),
-          padding: const EdgeInsets.all(TdTokens.space3),
+          margin: const EdgeInsets.all(ShadTokens.space4),
+          padding: const EdgeInsets.all(ShadTokens.space3),
           decoration: BoxDecoration(
-            color: TdTokens.success.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
-            border: Border.all(color: TdTokens.success.withValues(alpha: 0.4)),
+            color: ShadTokens.success.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+            border: Border.all(color: ShadTokens.success.withValues(alpha: 0.4)),
           ),
           child: Row(
             children: [
-              const Icon(RemixIcons.check_line, size: 16, color: TdTokens.success),
-              const SizedBox(width: TdTokens.space2),
+              const Icon(RemixIcons.check_line, size: 16, color: ShadTokens.success),
+              const SizedBox(width: ShadTokens.space2),
               Text(
                 result.message ?? '执行成功${result.elapsedMs != null ? '（${result.elapsedMs}ms）' : ''}',
-                style: const TextStyle(fontSize: TdTokens.fontBody),
+                style: const TextStyle(fontSize: ShadTokens.fontBody),
               ),
             ],
           ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/theme/tdesign_tokens.dart';
+import '../../core/theme/shadcn_tokens.dart';
 import 'empty_state.dart';
 
 /// 通用结果表格：分页 + 横向滚动 + Time 列格式化 + 底部统计
@@ -57,9 +57,9 @@ class _ResultTableState extends State<ResultTable> {
             scrollDirection: Axis.horizontal,
             child: SingleChildScrollView(
               child: DataTable(
-                headingRowColor: WidgetStatePropertyAll(TdTokens.bgComponent),
-                horizontalMargin: TdTokens.space4,
-                columnSpacing: TdTokens.space4,
+                headingRowColor: WidgetStatePropertyAll(ShadTokens.muted),
+                horizontalMargin: ShadTokens.space4,
+                columnSpacing: ShadTokens.space4,
                 columns: [
                   for (final name in widget.columns) DataColumn(label: Text(name)),
                 ],
@@ -72,8 +72,8 @@ class _ResultTableState extends State<ResultTable> {
                             Text(
                               i < row.length ? _format(i, row[i]) : '',
                               style: TextStyle(
-                                fontSize: TdTokens.fontBody,
-                                color: i < row.length && row[i] == null ? TdTokens.textPlaceholder : TdTokens.textPrimary,
+                                fontSize: ShadTokens.fontBody,
+                                color: i < row.length && row[i] == null ? ShadTokens.placeholder : ShadTokens.foreground,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -94,16 +94,16 @@ class _ResultTableState extends State<ResultTable> {
   Widget _buildFooter() {
     final multiplePages = _pageCount > 1;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: TdTokens.space4, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space4, vertical: 6),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: TdTokens.divider)),
-        color: TdTokens.bgContainer,
+        border: Border(top: BorderSide(color: ShadTokens.divider)),
+        color: ShadTokens.card,
       ),
       child: Row(
         children: [
           Text(
             '共 ${widget.rows.length} 行${widget.elapsedMs != null ? ' · ${widget.elapsedMs}ms' : ''}',
-            style: const TextStyle(fontSize: TdTokens.fontAux, color: TdTokens.textSecondary),
+            style: const TextStyle(fontSize: ShadTokens.fontAux, color: ShadTokens.mutedForeground),
           ),
           const Spacer(),
           if (multiplePages) ...[
@@ -114,7 +114,7 @@ class _ResultTableState extends State<ResultTable> {
             ),
             Text(
               '${_page + 1} / $_pageCount',
-              style: const TextStyle(fontSize: TdTokens.fontAux, color: TdTokens.textSecondary),
+              style: const TextStyle(fontSize: ShadTokens.fontAux, color: ShadTokens.mutedForeground),
             ),
             IconButton(
               visualDensity: VisualDensity.compact,

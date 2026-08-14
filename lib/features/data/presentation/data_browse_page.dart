@@ -5,7 +5,7 @@ import 'package:remixicon/remixicon.dart';
 
 import '../../../core/models/query_result.dart';
 import '../../../core/providers.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../../../shared/empty_state.dart';
 import '../../database/data/database_providers.dart';
 import '../data/data_providers.dart';
@@ -91,20 +91,20 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: TdTokens.space4,
-        vertical: TdTokens.space2,
+        horizontal: ShadTokens.space4,
+        vertical: ShadTokens.space2,
       ),
       child: Wrap(
-        spacing: TdTokens.space2,
-        runSpacing: TdTokens.space2,
+        spacing: ShadTokens.space2,
+        runSpacing: ShadTokens.space2,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           const Icon(
             RemixIcons.bar_chart_2_line,
             size: 16,
-            color: TdTokens.brand,
+            color: ShadTokens.primary,
           ),
-          const SizedBox(width: TdTokens.space1),
+          const SizedBox(width: ShadTokens.space1),
           _select(
             '数据库',
             _db,
@@ -133,7 +133,7 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
             (v) => setState(() => _sensor = v),
             valuesBuilder: (r) => [for (final row in r.rows) '${row.first}'],
           ),
-          const SizedBox(width: TdTokens.space2),
+          const SizedBox(width: ShadTokens.space2),
           SegmentedButton<TimeRange>(
             showSelectedIcon: false,
             style: const ButtonStyle(
@@ -150,12 +150,12 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
             selected: {_range},
             onSelectionChanged: (s) => setState(() => _range = s.first),
           ),
-          const SizedBox(width: TdTokens.space2),
+          const SizedBox(width: ShadTokens.space2),
           DropdownButton<String>(
             value: _interval,
             underline: const SizedBox.shrink(),
             isDense: true,
-            style: const TextStyle(fontSize: 13, color: TdTokens.textPrimary),
+            style: const TextStyle(fontSize: 13, color: ShadTokens.foreground),
             items: [
               for (final o in intervalOptions)
                 DropdownMenuItem(
@@ -193,10 +193,10 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
         : (valuesBuilder?.call(data.value!) ??
               [for (final row in data.value!.rows) '${row.first}']);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: TdTokens.space2),
+      padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space2),
       decoration: BoxDecoration(
-        border: Border.all(color: TdTokens.divider),
-        borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
+        border: Border.all(color: ShadTokens.divider),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
@@ -204,13 +204,13 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
             label,
             style: const TextStyle(
               fontSize: 13,
-              color: TdTokens.textPlaceholder,
+              color: ShadTokens.placeholder,
             ),
           ),
           value: values.contains(value) ? value : null,
           isDense: true,
           isExpanded: false,
-          style: const TextStyle(fontSize: 13, color: TdTokens.textPrimary),
+          style: const TextStyle(fontSize: 13, color: ShadTokens.foreground),
           items: [
             for (final v in values) DropdownMenuItem(value: v, child: Text(v)),
           ],
@@ -235,9 +235,9 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
-            TdTokens.space4,
-            TdTokens.space2,
-            TdTokens.space4,
+            ShadTokens.space4,
+            ShadTokens.space2,
+            ShadTokens.space4,
             0,
           ),
           child: Row(
@@ -245,14 +245,14 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
               const Icon(
                 RemixIcons.line_chart_line,
                 size: 15,
-                color: TdTokens.brand,
+                color: ShadTokens.primary,
               ),
-              const SizedBox(width: TdTokens.space2),
+              const SizedBox(width: ShadTokens.space2),
               Expanded(
                 child: Text(
                   '${q.aggregate.toUpperCase()}(${q.sensorName}) · ${q.interval} 窗口',
                   style: const TextStyle(
-                    fontSize: TdTokens.fontBody,
+                    fontSize: ShadTokens.fontBody,
                     fontWeight: FontWeight.w600,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -261,8 +261,8 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
               Text(
                 _range.label,
                 style: const TextStyle(
-                  fontSize: TdTokens.fontAux,
-                  color: TdTokens.textSecondary,
+                  fontSize: ShadTokens.fontAux,
+                  color: ShadTokens.mutedForeground,
                 ),
               ),
             ],
@@ -274,10 +274,10 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
                 const Center(child: CircularProgressIndicator(strokeWidth: 2)),
             error: (e, _) => Center(
               child: Padding(
-                padding: const EdgeInsets.all(TdTokens.space4),
+                padding: const EdgeInsets.all(ShadTokens.space4),
                 child: Text(
                   '聚合查询失败：$e',
-                  style: const TextStyle(color: TdTokens.danger),
+                  style: const TextStyle(color: ShadTokens.destructive),
                 ),
               ),
             ),
@@ -309,9 +309,9 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(
-            TdTokens.space4,
-            TdTokens.space2,
-            TdTokens.space4,
+            ShadTokens.space4,
+            ShadTokens.space2,
+            ShadTokens.space4,
             0,
           ),
           child: Row(
@@ -319,13 +319,13 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
               const Icon(
                 RemixIcons.database_2_line,
                 size: 15,
-                color: TdTokens.brand,
+                color: ShadTokens.primary,
               ),
-              const SizedBox(width: TdTokens.space2),
+              const SizedBox(width: ShadTokens.space2),
               const Text(
                 '原始数据',
                 style: TextStyle(
-                  fontSize: TdTokens.fontBody,
+                  fontSize: ShadTokens.fontBody,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -337,8 +337,8 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
                   error: (_, _) => '',
                 ),
                 style: const TextStyle(
-                  fontSize: TdTokens.fontAux,
-                  color: TdTokens.textSecondary,
+                  fontSize: ShadTokens.fontAux,
+                  color: ShadTokens.mutedForeground,
                 ),
               ),
             ],
@@ -350,10 +350,10 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
                 const Center(child: CircularProgressIndicator(strokeWidth: 2)),
             error: (e, _) => Center(
               child: Padding(
-                padding: const EdgeInsets.all(TdTokens.space4),
+                padding: const EdgeInsets.all(ShadTokens.space4),
                 child: Text(
                   '查询失败：$e',
-                  style: const TextStyle(color: TdTokens.danger),
+                  style: const TextStyle(color: ShadTokens.destructive),
                 ),
               ),
             ),
@@ -379,10 +379,10 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
                   child: SingleChildScrollView(
                     child: DataTable(
                       headingRowColor: WidgetStatePropertyAll(
-                        TdTokens.bgComponent,
+                        ShadTokens.muted,
                       ),
-                      horizontalMargin: TdTokens.space4,
-                      columnSpacing: TdTokens.space4,
+                      horizontalMargin: ShadTokens.space4,
+                      columnSpacing: ShadTokens.space4,
                       columns: [
                         for (final c in r.columnNames)
                           DataColumn(label: Text(c)),
@@ -410,20 +410,20 @@ class _DataBrowsePageState extends ConsumerState<DataBrowsePage> {
         ),
         Container(
           padding: const EdgeInsets.symmetric(
-            horizontal: TdTokens.space4,
+            horizontal: ShadTokens.space4,
             vertical: 6,
           ),
           decoration: BoxDecoration(
-            border: Border(top: BorderSide(color: TdTokens.divider)),
-            color: TdTokens.bgContainer,
+            border: Border(top: BorderSide(color: ShadTokens.divider)),
+            color: ShadTokens.card,
           ),
           child: Row(
             children: [
               Text(
                 '${r.rows.length} 行/页 · 第 ${q.page + 1} / $pageCount 页',
                 style: const TextStyle(
-                  fontSize: TdTokens.fontAux,
-                  color: TdTokens.textSecondary,
+                  fontSize: ShadTokens.fontAux,
+                  color: ShadTokens.mutedForeground,
                 ),
               ),
               const Spacer(),

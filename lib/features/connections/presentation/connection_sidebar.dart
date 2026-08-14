@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../../../core/models/connection.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
+import '../../settings/presentation/settings_dialog.dart';
 import 'connection_form_sheet.dart';
 
 /// 侧边栏：连接列表 + 新建入口
@@ -30,77 +31,57 @@ class ConnectionSidebar extends ConsumerStatefulWidget {
 }
 
 class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
-  static const double _collapsedWidth = 48;
-
-  bool _collapsed = false;
-
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: _collapsed ? _collapsedWidth : 280,
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: TdTokens.bgContainer,
-        border: Border(right: BorderSide(color: TdTokens.divider)),
+        color: ShadTokens.sidebar,
+        border: Border(right: BorderSide(color: ShadTokens.border)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildHeader(context, ref),
-          if (!_collapsed) ...[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                TdTokens.space2,
-                TdTokens.space3,
-                TdTokens.space2,
-                TdTokens.space3,
-              ),
-              child: FilledButton.icon(
-                onPressed: () => showConnectionFormDialog(context, ref),
-                icon: const Icon(RemixIcons.add_line, size: 16),
-                label: const Text('新建连接'),
-                style: FilledButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
-                  ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              ShadTokens.space2,
+              ShadTokens.space3,
+              ShadTokens.space2,
+              ShadTokens.space3,
+            ),
+            child: FilledButton.icon(
+              onPressed: () => showConnectionFormDialog(context, ref),
+              icon: const Icon(RemixIcons.add_line, size: 16),
+              label: const Text('新建连接'),
+              style: FilledButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
                 ),
               ),
             ),
-            Expanded(
-              child: widget.loading
-                  ? const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : widget.connections.isEmpty
-                  ? _buildEmpty(context, ref)
-                  : _buildList(context, ref),
-            ),
-          ],
+          ),
+          Expanded(
+            child: widget.loading
+                ? const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : widget.connections.isEmpty
+                ? _buildEmpty(context, ref)
+                : _buildList(context, ref),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
-    if (_collapsed) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: TdTokens.space3),
-        child: Center(
-          child: IconButton(
-            onPressed: () => setState(() => _collapsed = false),
-            icon: const Icon(RemixIcons.menu_unfold_line, size: 18),
-            tooltip: '展开侧边栏',
-            color: TdTokens.textSecondary,
-            visualDensity: VisualDensity.compact,
-          ),
-        ),
-      );
-    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        TdTokens.space4,
-        TdTokens.space3,
-        TdTokens.space3,
-        TdTokens.space3,
+        ShadTokens.space4,
+        ShadTokens.space3,
+        ShadTokens.space3,
+        ShadTokens.space3,
       ),
       child: Row(
         children: [
@@ -109,7 +90,7 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
               TextSpan(
                 text: 'IoTDB Desktop',
                 style: TextStyle(
-                  fontSize: TdTokens.fontTitle,
+                  fontSize: ShadTokens.fontTitle,
                   fontWeight: FontWeight.w600
                 )
               ),
@@ -118,10 +99,10 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
             ),
           ),
           IconButton(
-            onPressed: () => setState(() => _collapsed = true),
-            icon: const Icon(RemixIcons.menu_fold_line, size: 18),
-            tooltip: '收起侧边栏',
-            color: TdTokens.textSecondary,
+            onPressed: () => showSettingsDialog(context, ref),
+            icon: const Icon(RemixIcons.settings_3_line, size: 18),
+            tooltip: '设置',
+            color: ShadTokens.mutedForeground,
             visualDensity: VisualDensity.compact,
           ),
         ],
@@ -131,7 +112,7 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
 
   Widget _buildList(BuildContext context, WidgetRef ref) {
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: TdTokens.space2),
+      padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space2),
       itemCount: widget.connections.length,
       separatorBuilder: (_, _) => const SizedBox(height: 2),
       itemBuilder: (context, index) {
@@ -155,14 +136,14 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
           const Icon(
             RemixIcons.plug_line,
             size: 32,
-            color: TdTokens.textPlaceholder,
+            color: ShadTokens.placeholder,
           ),
-          const SizedBox(height: TdTokens.space2),
+          const SizedBox(height: ShadTokens.space2),
           const Text(
             '暂无连接',
-            style: TextStyle(fontSize: 13, color: TdTokens.textPlaceholder),
+            style: TextStyle(fontSize: 13, color: ShadTokens.placeholder),
           ),
-          const SizedBox(height: TdTokens.space3),
+          const SizedBox(height: ShadTokens.space3),
           TextButton.icon(
             onPressed: () => showConnectionFormDialog(context, ref),
             icon: const Icon(RemixIcons.add_line, size: 16),
@@ -194,12 +175,12 @@ class _ConnectionItem extends StatelessWidget {
     return InkWell(
       onTap: onOpen,
       onDoubleTap: onOpen,
-      borderRadius: BorderRadius.circular(TdTokens.radiusDefault),
-      hoverColor: TdTokens.bgHover,
+      borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+      hoverColor: ShadTokens.sidebarHover,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: TdTokens.space3,
-          vertical: TdTokens.space3,
+          horizontal: ShadTokens.space3,
+          vertical: ShadTokens.space3,
         ),
         child: Row(
           children: [
@@ -208,12 +189,12 @@ class _ConnectionItem extends StatelessWidget {
               height: 8,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: TdTokens.textPlaceholder,
+                  color: ShadTokens.placeholder,
                   shape: BoxShape.circle,
                 ),
               ),
             ),
-            const SizedBox(width: TdTokens.space2),
+            const SizedBox(width: ShadTokens.space2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,7 +202,7 @@ class _ConnectionItem extends StatelessWidget {
                   Text(
                     conn.name,
                     style: const TextStyle(
-                      fontSize: TdTokens.fontBody,
+                      fontSize: ShadTokens.fontBody,
                       fontWeight: FontWeight.w500,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -230,7 +211,7 @@ class _ConnectionItem extends StatelessWidget {
                     '${conn.host}:${conn.port}',
                     style: const TextStyle(
                       fontSize: 12,
-                      color: TdTokens.textPlaceholder,
+                      color: ShadTokens.placeholder,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),

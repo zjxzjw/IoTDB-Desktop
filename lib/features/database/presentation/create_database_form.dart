@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../../../core/utils/sql_builder.dart';
 
 /// 建库表单（ModalBottomSheet）：2.0.10 仅支持 4 个建库参数
@@ -11,16 +11,16 @@ Future<void> showCreateDatabaseSheet(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: TdTokens.bgContainer,
+    backgroundColor: ShadTokens.card,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(TdTokens.radiusLarge)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(ShadTokens.radiusLarge)),
     ),
     builder: (context) => Padding(
       padding: EdgeInsets.only(
-        left: TdTokens.space6,
-        right: TdTokens.space6,
-        top: TdTokens.space4,
-        bottom: MediaQuery.of(context).viewInsets.bottom + TdTokens.space6,
+        left: ShadTokens.space6,
+        right: ShadTokens.space6,
+        top: ShadTokens.space4,
+        bottom: MediaQuery.of(context).viewInsets.bottom + ShadTokens.space6,
       ),
       child: const CreateDatabaseSheet(),
     ),
@@ -99,9 +99,9 @@ class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
             children: [
               Row(
                 children: [
-                  const Icon(RemixIcons.database_2_line, size: 18, color: TdTokens.brand),
-                  const SizedBox(width: TdTokens.space2),
-                  const Text('新建数据库', style: TextStyle(fontSize: TdTokens.fontTitle, fontWeight: FontWeight.w600)),
+                  const Icon(RemixIcons.database_2_line, size: 18, color: ShadTokens.primary),
+                  const SizedBox(width: ShadTokens.space2),
+                  const Text('新建数据库', style: TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600)),
                   const Spacer(),
                   IconButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -110,13 +110,13 @@ class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _name,
                 decoration: const InputDecoration(labelText: '数据库名 *', hintText: '如：root.test 或 test'),
                 validator: (v) => (v == null || v.trim().isEmpty) ? '请输入数据库名' : null,
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('设置 TTL', style: TextStyle(fontSize: 13)),
@@ -139,9 +139,9 @@ class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
                         },
                       ),
                     ),
-                    const SizedBox(width: TdTokens.space2),
-                    const Text('或', style: TextStyle(fontSize: 12, color: TdTokens.textSecondary)),
-                    const SizedBox(width: TdTokens.space2),
+                    const SizedBox(width: ShadTokens.space2),
+                    const Text('或', style: TextStyle(fontSize: 12, color: ShadTokens.mutedForeground)),
+                    const SizedBox(width: ShadTokens.space2),
                     FilledButton.tonal(
                       onPressed: () => setState(() => _ttlInfinite = !_ttlInfinite),
                       child: Text(_ttlInfinite ? 'INF（永久）' : 'INF'),
@@ -149,7 +149,7 @@ class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
                   ],
                 ),
               ],
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               TextFormField(
                 controller: _partition,
                 decoration: const InputDecoration(
@@ -159,7 +159,7 @@ class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
                 keyboardType: TextInputType.number,
                 validator: (v) => _optionalPositiveInt(v, '分区间隔'),
               ),
-              const SizedBox(height: TdTokens.space3),
+              const SizedBox(height: ShadTokens.space3),
               Row(
                 children: [
                   Expanded(
@@ -170,7 +170,7 @@ class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
                       validator: (v) => _optionalPositiveInt(v, 'Schema 组数'),
                     ),
                   ),
-                  const SizedBox(width: TdTokens.space3),
+                  const SizedBox(width: ShadTokens.space3),
                   Expanded(
                     child: TextFormField(
                       controller: _dataGroup,
@@ -181,7 +181,7 @@ class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
                   ),
                 ],
               ),
-              const SizedBox(height: TdTokens.space4),
+              const SizedBox(height: ShadTokens.space4),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -189,7 +189,7 @@ class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text('取消'),
                   ),
-                  const SizedBox(width: TdTokens.space2),
+                  const SizedBox(width: ShadTokens.space2),
                   FilledButton(
                     onPressed: _submitting ? null : _submit,
                     child: _submitting

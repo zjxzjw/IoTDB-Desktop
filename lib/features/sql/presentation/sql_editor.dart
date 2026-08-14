@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:code_text_field/code_text_field.dart';
 import 'package:remixicon/remixicon.dart';
 
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../../../core/utils/sql_highlighter.dart';
 
 /// SQL 编辑器：CodeField + 关键字/测点路径补全 + Cmd/Ctrl+Enter 运行
@@ -155,7 +155,7 @@ class _SqlEditorState extends State<SqlEditor> {
               controller: widget.controller,
               focusNode: widget.focusNode,
               textStyle: const TextStyle(fontSize: 13.5, fontFamily: 'Menlo', height: 1.5),
-              cursorColor: TdTokens.brand,
+              cursorColor: Theme.of(context).colorScheme.primary,
               decoration: BoxDecoration(color: Colors.transparent),
             ),
           ),
@@ -169,17 +169,17 @@ class _SqlEditorState extends State<SqlEditor> {
     return Container(
       height: 150,
       decoration: BoxDecoration(
-        color: TdTokens.bgContainer,
-        border: Border(top: BorderSide(color: TdTokens.divider)),
+        color: ShadTokens.card,
+        border: Border(top: BorderSide(color: ShadTokens.divider)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(TdTokens.space3, 4, TdTokens.space3, 0),
+            padding: const EdgeInsets.fromLTRB(ShadTokens.space3, 4, ShadTokens.space3, 0),
             child: Text(
               '补全（Tab/Enter 插入，Esc 关闭）',
-              style: const TextStyle(fontSize: 11, color: TdTokens.textPlaceholder),
+              style: const TextStyle(fontSize: 11, color: ShadTokens.placeholder),
             ),
           ),
           Expanded(
@@ -188,16 +188,16 @@ class _SqlEditorState extends State<SqlEditor> {
               itemBuilder: (context, i) => InkWell(
                 onTap: () => _insert(i),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: TdTokens.space3, vertical: 5),
-                  color: i == _selected ? TdTokens.bgComponent : null,
+                  padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space3, vertical: 5),
+                  color: i == _selected ? ShadTokens.muted : null,
                   child: Row(
                     children: [
                       Icon(
                         _candidates[i].startsWith('root') ? RemixIcons.pulse_line : RemixIcons.function_line,
                         size: 14,
-                        color: TdTokens.textSecondary,
+                        color: ShadTokens.mutedForeground,
                       ),
-                      const SizedBox(width: TdTokens.space2),
+                      const SizedBox(width: ShadTokens.space2),
                       Expanded(
                         child: Text(
                           _candidates[i],

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../../../core/providers.dart';
-import '../../../core/theme/tdesign_tokens.dart';
+import '../../../core/theme/shadcn_tokens.dart';
 import '../../../shared/confirm_dialog.dart';
 import '../../../shared/empty_state.dart';
 import '../data/users_providers.dart';
@@ -64,14 +64,14 @@ class _UsersPageState extends ConsumerState<UsersPage> {
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: TdTokens.space4, vertical: TdTokens.space3),
+      padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space4, vertical: ShadTokens.space3),
       child: Row(
         children: [
-          const Icon(RemixIcons.shield_user_line, size: 16, color: TdTokens.brand),
-          const SizedBox(width: TdTokens.space2),
+          const Icon(RemixIcons.shield_user_line, size: 16, color: ShadTokens.primary),
+          const SizedBox(width: ShadTokens.space2),
           const Text(
             '用户与权限',
-            style: TextStyle(fontSize: TdTokens.fontTitle, fontWeight: FontWeight.w600),
+            style: TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600),
           ),
           const Spacer(),
           if (_kind == PrivilegeKind.user && _selected != null)
@@ -80,7 +80,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
               icon: const Icon(RemixIcons.shield_keyhole_line, size: 16),
               label: const Text('授权'),
             ),
-          const SizedBox(width: TdTokens.space2),
+          const SizedBox(width: ShadTokens.space2),
           IconButton(
             visualDensity: VisualDensity.compact,
             tooltip: '刷新',
@@ -99,7 +99,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(TdTokens.space4, TdTokens.space3, TdTokens.space4, 0),
+          padding: const EdgeInsets.fromLTRB(ShadTokens.space4, ShadTokens.space3, ShadTokens.space4, 0),
           child: Row(
             children: [
               SegmentedButton<PrivilegeKind>(
@@ -118,20 +118,20 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                 onPressed: () => isUser
                     ? showCreateUserSheet(context, ref)
                     : showCreateRoleSheet(context, ref),
-                icon: const Icon(RemixIcons.add_line, size: 18, color: TdTokens.brand),
+                icon: const Icon(RemixIcons.add_line, size: 18, color: ShadTokens.primary),
               ),
             ],
           ),
         ),
-        const SizedBox(height: TdTokens.space2),
+        const SizedBox(height: ShadTokens.space2),
         const Divider(height: 1),
         Expanded(
           child: list.when(
             loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
             error: (e, _) => Center(
               child: Padding(
-                padding: const EdgeInsets.all(TdTokens.space4),
-                child: Text('加载失败：$e', style: const TextStyle(color: TdTokens.danger)),
+                padding: const EdgeInsets.all(ShadTokens.space4),
+                child: Text('加载失败：$e', style: const TextStyle(color: ShadTokens.destructive)),
               ),
             ),
             data: (r) {
@@ -154,23 +154,23 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                   return InkWell(
                     onTap: () => setState(() => _selected = name),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: TdTokens.space4, vertical: TdTokens.space2),
-                      color: selected ? TdTokens.bgComponent : null,
+                      padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space4, vertical: ShadTokens.space2),
+                      color: selected ? ShadTokens.muted : null,
                       child: Row(
                         children: [
                           Icon(
                             isUser ? RemixIcons.user_line : RemixIcons.user_star_line,
                             size: 15,
-                            color: selected ? TdTokens.brand : TdTokens.textSecondary,
+                            color: selected ? ShadTokens.primary : ShadTokens.mutedForeground,
                           ),
-                          const SizedBox(width: TdTokens.space2),
+                          const SizedBox(width: ShadTokens.space2),
                           Expanded(
                             child: Text(
                               name,
                               style: TextStyle(
-                                fontSize: TdTokens.fontBody,
+                                fontSize: ShadTokens.fontBody,
                                 fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                                color: selected ? TdTokens.brand : TdTokens.textPrimary,
+                                color: selected ? ShadTokens.primary : ShadTokens.foreground,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -178,7 +178,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                           if (name == 'root')
                             const Text(
                               '管理员',
-                              style: TextStyle(fontSize: 11, color: TdTokens.textPlaceholder),
+                              style: TextStyle(fontSize: 11, color: ShadTokens.placeholder),
                             ),
                         ],
                       ),
@@ -206,19 +206,19 @@ class _UsersPageState extends ConsumerState<UsersPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: TdTokens.space4, vertical: TdTokens.space3),
+          padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space4, vertical: ShadTokens.space3),
           child: Row(
             children: [
               Icon(
                 _kind == PrivilegeKind.user ? RemixIcons.user_line : RemixIcons.user_star_line,
                 size: 16,
-                color: TdTokens.brand,
+                color: ShadTokens.primary,
               ),
-              const SizedBox(width: TdTokens.space2),
+              const SizedBox(width: ShadTokens.space2),
               Expanded(
                 child: Text(
                   selected,
-                  style: const TextStyle(fontSize: TdTokens.fontTitle, fontWeight: FontWeight.w600),
+                  style: const TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -229,7 +229,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                     icon: const Icon(RemixIcons.key_2_line, size: 16),
                     label: const Text('修改密码'),
                   ),
-                  const SizedBox(width: TdTokens.space2),
+                  const SizedBox(width: ShadTokens.space2),
                   FilledButton.icon(
                     onPressed: () => showGrantPrivilegeSheet(context, ref, PrivilegeTarget(_kind, selected)),
                     icon: const Icon(RemixIcons.shield_keyhole_line, size: 16),
@@ -243,7 +243,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                   label: const Text('授权'),
                 ),
               ],
-              const SizedBox(width: TdTokens.space2),
+              const SizedBox(width: ShadTokens.space2),
               IconButton(
                 visualDensity: VisualDensity.compact,
                 tooltip: _kind == PrivilegeKind.user ? '删除用户' : '删除角色',
@@ -251,7 +251,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                 icon: Icon(
                   RemixIcons.delete_bin_line,
                   size: 18,
-                  color: selected == 'root' ? TdTokens.textDisabled : TdTokens.danger,
+                  color: selected == 'root' ? ShadTokens.textDisabled : ShadTokens.destructive,
                 ),
               ),
             ],
@@ -264,11 +264,11 @@ class _UsersPageState extends ConsumerState<UsersPage> {
         if (selected == 'root')
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(TdTokens.space3),
-            color: TdTokens.bgPage,
+            padding: const EdgeInsets.all(ShadTokens.space3),
+            color: ShadTokens.muted,
             child: const Text(
               'root 为内置管理员，拥有全部权限且不可修改',
-              style: TextStyle(fontSize: TdTokens.fontAux, color: TdTokens.textSecondary),
+              style: TextStyle(fontSize: ShadTokens.fontAux, color: ShadTokens.mutedForeground),
             ),
           ),
       ],
@@ -283,7 +283,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
       title: _kind == PrivilegeKind.user ? '删除用户' : '删除角色',
       message: '确定删除${_kind.label}「$selected」？',
       confirmText: '删除',
-      confirmColor: TdTokens.danger,
+      confirmColor: ShadTokens.destructive,
     );
     if (!ok) return;
     try {
@@ -309,8 +309,8 @@ class _UsersPageState extends ConsumerState<UsersPage> {
       loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       error: (e, _) => Center(
         child: Padding(
-          padding: const EdgeInsets.all(TdTokens.space4),
-          child: Text('加载失败：$e', style: const TextStyle(color: TdTokens.danger)),
+          padding: const EdgeInsets.all(ShadTokens.space4),
+          child: Text('加载失败：$e', style: const TextStyle(color: ShadTokens.destructive)),
         ),
       ),
       data: (r) {
@@ -325,11 +325,11 @@ class _UsersPageState extends ConsumerState<UsersPage> {
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(TdTokens.space4),
+            padding: const EdgeInsets.all(ShadTokens.space4),
             child: DataTable(
-              headingRowColor: WidgetStatePropertyAll(TdTokens.bgComponent),
-              horizontalMargin: TdTokens.space4,
-              columnSpacing: TdTokens.space4,
+              headingRowColor: WidgetStatePropertyAll(ShadTokens.muted),
+              horizontalMargin: ShadTokens.space4,
+              columnSpacing: ShadTokens.space4,
               columns: const [
                 DataColumn(label: Text('权限')),
                 DataColumn(label: Text('作用路径')),
@@ -358,14 +358,14 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                           e.fromRole ? '角色 ${e.role}' : '直接授权',
                           style: TextStyle(
                             fontSize: 13,
-                            color: e.fromRole ? TdTokens.warning : TdTokens.textSecondary,
+                            color: e.fromRole ? ShadTokens.warning : ShadTokens.mutedForeground,
                           ),
                         ),
                       ),
                       DataCell(
                         e.grantOption
-                            ? const Icon(RemixIcons.check_line, size: 16, color: TdTokens.success)
-                            : const Icon(RemixIcons.close_line, size: 16, color: TdTokens.textDisabled),
+                            ? const Icon(RemixIcons.check_line, size: 16, color: ShadTokens.success)
+                            : const Icon(RemixIcons.close_line, size: 16, color: ShadTokens.textDisabled),
                       ),
                       DataCell(
                         Row(
@@ -375,7 +375,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                               IconButton(
                                 visualDensity: VisualDensity.compact,
                                 tooltip: '撤销权限',
-                                icon: const Icon(RemixIcons.recycle_line, size: 16, color: TdTokens.danger),
+                                icon: const Icon(RemixIcons.recycle_line, size: 16, color: ShadTokens.destructive),
                                 onPressed: () => _revoke(e),
                               ),
                             if (e.fromRole)
@@ -385,7 +385,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                                 icon: Icon(
                                   RemixIcons.arrow_go_back_line,
                                   size: 16,
-                                  color: TdTokens.textDisabled,
+                                  color: ShadTokens.textDisabled,
                                 ),
                                 onPressed: () {},
                               ),
@@ -410,7 +410,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
       title: '撤销权限',
       message: '确定撤销 ${_kind.label}「$selected」的权限 ${entry.privilege}（${entry.isGlobal ? Privileges.rootScope : entry.scope}）？',
       confirmText: '撤销',
-      confirmColor: TdTokens.danger,
+      confirmColor: ShadTokens.destructive,
     );
     if (!ok) return;
     try {
