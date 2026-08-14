@@ -9,9 +9,10 @@ import 'storage/secure_store.dart';
 final secureStoreProvider = Provider<SecureStore>((ref) => SecureStore());
 
 /// 连接列表（AsyncNotifier：build 时从磁盘加载）
-final connectionStoreProvider = AsyncNotifierProvider<ConnectionStoreNotifier, List<Connection>>(
-  ConnectionStoreNotifier.new,
-);
+final connectionStoreProvider =
+    AsyncNotifierProvider<ConnectionStoreNotifier, List<Connection>>(
+      ConnectionStoreNotifier.new,
+    );
 
 class ConnectionStoreNotifier extends AsyncNotifier<List<Connection>> {
   ConnectionStore get _store => ConnectionStore(ref.read(secureStoreProvider));
@@ -38,7 +39,10 @@ class ConnectionStoreNotifier extends AsyncNotifier<List<Connection>> {
 }
 
 /// 当前打开工作区的连接
-final activeConnectionProvider = NotifierProvider<ActiveConnectionNotifier, Connection?>(ActiveConnectionNotifier.new);
+final activeConnectionProvider =
+    NotifierProvider<ActiveConnectionNotifier, Connection?>(
+      ActiveConnectionNotifier.new,
+    );
 
 class ActiveConnectionNotifier extends Notifier<Connection?> {
   @override
@@ -59,9 +63,10 @@ final iotdbClientProvider = Provider<IotdbClient>((ref) {
 });
 
 /// 数据库列表（SHOW DATABASES DETAILS，随连接/刷新重建）
-final databaseListProvider = AsyncNotifierProvider<DatabaseListNotifier, QueryResult>(
-  DatabaseListNotifier.new,
-);
+final databaseListProvider =
+    AsyncNotifierProvider<DatabaseListNotifier, QueryResult>(
+      DatabaseListNotifier.new,
+    );
 
 class DatabaseListNotifier extends AsyncNotifier<QueryResult> {
   @override

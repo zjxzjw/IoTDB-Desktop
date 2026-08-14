@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+
 import '../models/connection.dart';
 import '../models/query_result.dart';
 
@@ -21,24 +22,28 @@ class IotdbClient {
   final Dio dio;
 
   IotdbClient(this.conn)
-      : dio = Dio(
-          BaseOptions(
-            baseUrl: conn.baseUrl,
-            connectTimeout: Duration(milliseconds: conn.timeoutMs),
-            receiveTimeout: Duration(milliseconds: conn.timeoutMs),
-            sendTimeout: Duration(milliseconds: conn.timeoutMs),
-            headers: {'Content-Type': 'application/json'},
-          ),
-        ) {
-    dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (options, handler) {
-        if (options.path != '/ping') {
-          final token = base64Encode(utf8.encode('${conn.username}:${conn.password}'));
-          options.headers['Authorization'] = 'Basic $token';
-        }
-        handler.next(options);
-      },
-    ));
+    : dio = Dio(
+        BaseOptions(
+          baseUrl: conn.baseUrl,
+          connectTimeout: Duration(milliseconds: conn.timeoutMs),
+          receiveTimeout: Duration(milliseconds: conn.timeoutMs),
+          sendTimeout: Duration(milliseconds: conn.timeoutMs),
+          headers: {'Content-Type': 'application/json'},
+        ),
+      ) {
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          if (options.path != '/ping') {
+            final token = base64Encode(
+              utf8.encode('${conn.username}:${conn.password}'),
+            );
+            options.headers['Authorization'] = 'Basic $token';
+          }
+          handler.next(options);
+        },
+      ),
+    );
   }
 
   /// 检活，返回延迟毫秒数
@@ -54,7 +59,9 @@ class IotdbClient {
     final payload = <String, dynamic>{'sql': sql};
     final limit = rowLimit ?? conn.rowLimit;
     if (limit != null && limit > 0) payload['row_limit'] = limit;
-    final response = await _guard(() => dio.post('/rest/v2/query', data: payload));
+    final response = await _guard(
+      () => dio.post('/rest/v2/query', data: payload),
+    );
     final json = response.data as Map<String, dynamic>;
     _throwIfServerError(json);
     return QueryResult.fromRestJson(json, sw.elapsedMilliseconds);
@@ -62,7 +69,9 @@ class IotdbClient {
 
   /// 非查询语句（DDL/DML/权限）
   Future<Map<String, dynamic>> nonQuery(String sql) async {
-    final response = await _guard(() => dio.post('/rest/v2/nonQuery', data: {'sql': sql}));
+    final response = await _guard(
+      () => dio.post('/rest/v2/nonQuery', data: {'sql': sql}),
+    );
     final json = (response.data as Map<String, dynamic>?) ?? {};
     _throwIfServerError(json);
     return json;
@@ -80,7 +89,9 @@ class IotdbClient {
     }
   }
 
-  Future<Response<dynamic>> _guard(Future<Response<dynamic>> Function() request) async {
+  Future<Response<dynamic>> _guard(
+    Future<Response<dynamic>> Function() request,
+  ) async {
     try {
       return await request();
     } on DioException catch (e) {
@@ -106,7 +117,13 @@ class IotdbClient {
       default:
         break;
     }
-    if (status == 401) return const IotdbException('认证失败：用户名或密码错误', statusCode: 401, kind: 'AUTH');
+    if (status == 401) {
+      return const IotdbException(
+        '认证失败：用户名或密码错误',
+        statusCode: 401,
+        kind: 'AUTH',
+      );
+    }
     if (status == 411) {
       return const IotdbException(
         '结果集行数超过服务端限制（row_limit），请使用 LIMIT/OFFSET 分页查询',
@@ -117,7 +134,8 @@ class IotdbClient {
     final body = e.response?.data;
     String message = 'HTTP $status';
     if (body is Map<String, dynamic>) {
-      message = body['message']?.toString() ?? body['error']?.toString() ?? message;
+      message =
+          body['message']?.toString() ?? body['error']?.toString() ?? message;
     } else if (body is String && body.isNotEmpty) {
       message = body;
     }

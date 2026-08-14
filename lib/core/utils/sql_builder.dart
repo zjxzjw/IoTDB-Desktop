@@ -15,9 +15,12 @@ class SqlBuilder {
   }) {
     final withs = <String>[
       if (ttlMs != null) 'TTL=$ttlMs',
-      if (timePartitionIntervalMs != null) 'TIME_PARTITION_INTERVAL=$timePartitionIntervalMs',
-      if (schemaRegionGroupNum != null) 'SCHEMA_REGION_GROUP_NUM=$schemaRegionGroupNum',
-      if (dataRegionGroupNum != null) 'DATA_REGION_GROUP_NUM=$dataRegionGroupNum',
+      if (timePartitionIntervalMs != null)
+        'TIME_PARTITION_INTERVAL=$timePartitionIntervalMs',
+      if (schemaRegionGroupNum != null)
+        'SCHEMA_REGION_GROUP_NUM=$schemaRegionGroupNum',
+      if (dataRegionGroupNum != null)
+        'DATA_REGION_GROUP_NUM=$dataRegionGroupNum',
     ];
     final suffix = withs.isEmpty ? '' : ' WITH ${withs.join(', ')}';
     return 'CREATE DATABASE $name$suffix';
@@ -46,11 +49,15 @@ class SqlBuilder {
     Map<String, String>? attributes,
   }) {
     final withs = <String>['DATATYPE=$dataType'];
-    if (encoding != null && encoding.trim().isNotEmpty) withs.add('ENCODING=${encoding.trim().toUpperCase()}');
+    if (encoding != null && encoding.trim().isNotEmpty) {
+      withs.add('ENCODING=${encoding.trim().toUpperCase()}');
+    }
     if (compressor != null && compressor.trim().isNotEmpty) {
       withs.add('COMPRESSOR=${compressor.trim().toUpperCase()}');
     }
-    final buffer = StringBuffer('CREATE TIMESERIES $path WITH ${withs.join(', ')}');
+    final buffer = StringBuffer(
+      'CREATE TIMESERIES $path WITH ${withs.join(', ')}',
+    );
     if (tags != null && tags.isNotEmpty) {
       buffer.write(' TAGS(${_kvList(tags)})');
     }
@@ -61,7 +68,8 @@ class SqlBuilder {
   }
 
   /// 删除测点：DELETE TIMESERIES `<path>`[, `<path>`...]
-  static String deleteTimeseries(List<String> paths) => 'DELETE TIMESERIES ${paths.join(', ')}';
+  static String deleteTimeseries(List<String> paths) =>
+      'DELETE TIMESERIES ${paths.join(', ')}';
 
   static String _kvList(Map<String, String> map) {
     return map.entries.map((e) => '${e.key}=${_quote(e.value)}').join(', ');
@@ -69,7 +77,8 @@ class SqlBuilder {
 
   /// 值含特殊字符/空格时加单引号
   static String _quote(String v) {
-    final needsQuote = v.isEmpty || RegExp(r"[\s,=()'\u4e00-\u9fa5]").hasMatch(v);
+    final needsQuote =
+        v.isEmpty || RegExp(r"[\s,=()'\u4e00-\u9fa5]").hasMatch(v);
     if (!needsQuote) return v;
     return "'${v.replaceAll("'", "\\'")}'";
   }

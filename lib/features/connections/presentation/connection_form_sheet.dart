@@ -18,7 +18,9 @@ Future<void> showConnectionFormSheet(
     isScrollControlled: true,
     backgroundColor: TdTokens.bgContainer,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(TdTokens.radiusLarge)),
+      borderRadius: BorderRadius.vertical(
+        top: Radius.circular(TdTokens.radiusLarge),
+      ),
     ),
     builder: (context) => Padding(
       padding: EdgeInsets.only(
@@ -38,7 +40,8 @@ class ConnectionFormSheet extends ConsumerStatefulWidget {
   const ConnectionFormSheet({super.key, this.editing});
 
   @override
-  ConsumerState<ConnectionFormSheet> createState() => _ConnectionFormSheetState();
+  ConsumerState<ConnectionFormSheet> createState() =>
+      _ConnectionFormSheetState();
 }
 
 class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
@@ -97,7 +100,9 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
       password: _password.text,
       enableSSL: _enableSSL,
       timeoutMs: timeout,
-      rowLimit: _useRowLimit ? (int.tryParse(_rowLimit.text.trim()) ?? 10000) : null,
+      rowLimit: _useRowLimit
+          ? (int.tryParse(_rowLimit.text.trim()) ?? 10000)
+          : null,
       createdAt: widget.editing?.createdAt ?? DateTime.now(),
       updatedAt: DateTime.now(),
     );
@@ -117,7 +122,11 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
       } catch (_) {}
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('连接成功（${ms}ms）${version.isEmpty ? '' : '，服务端版本 $version'}')),
+        SnackBar(
+          content: Text(
+            '连接成功（${ms}ms）${version.isEmpty ? '' : '，服务端版本 $version'}',
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -140,7 +149,9 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('保存失败：$e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('保存失败：$e')));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -159,11 +170,18 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
             children: [
               Row(
                 children: [
-                  const Icon(RemixIcons.link_m, size: 18, color: TdTokens.brand),
+                  const Icon(
+                    RemixIcons.link_m,
+                    size: 18,
+                    color: TdTokens.brand,
+                  ),
                   const SizedBox(width: TdTokens.space2),
                   Text(
                     widget.editing == null ? '新建连接' : '编辑连接',
-                    style: const TextStyle(fontSize: TdTokens.fontTitle, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontSize: TdTokens.fontTitle,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const Spacer(),
                   IconButton(
@@ -176,8 +194,12 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
               const SizedBox(height: TdTokens.space3),
               TextFormField(
                 controller: _name,
-                decoration: const InputDecoration(labelText: '连接名称 *', hintText: '如：生产环境 1C1D'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? '请输入连接名称' : null,
+                decoration: const InputDecoration(
+                  labelText: '连接名称 *',
+                  hintText: '如：生产环境 1C1D',
+                ),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? '请输入连接名称' : null,
               ),
               const SizedBox(height: TdTokens.space3),
               Row(
@@ -185,8 +207,12 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                   Expanded(
                     child: TextFormField(
                       controller: _host,
-                      decoration: const InputDecoration(labelText: '主机地址 *', hintText: '106.55.231.32'),
-                      validator: (v) => (v == null || v.trim().isEmpty) ? '请输入主机地址' : null,
+                      decoration: const InputDecoration(
+                        labelText: '主机地址 *',
+                        hintText: '106.55.231.32',
+                      ),
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? '请输入主机地址' : null,
                     ),
                   ),
                   const SizedBox(width: TdTokens.space3),
@@ -198,7 +224,9 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                       keyboardType: TextInputType.number,
                       validator: (v) {
                         final p = int.tryParse(v ?? '');
-                        return (p == null || p < 1 || p > 65535) ? '1-65535' : null;
+                        return (p == null || p < 1 || p > 65535)
+                            ? '1-65535'
+                            : null;
                       },
                     ),
                   ),
@@ -210,7 +238,10 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                   Expanded(
                     child: TextFormField(
                       controller: _username,
-                      decoration: const InputDecoration(labelText: '用户名', hintText: 'root'),
+                      decoration: const InputDecoration(
+                        labelText: '用户名',
+                        hintText: 'root',
+                      ),
                     ),
                   ),
                   const SizedBox(width: TdTokens.space3),
@@ -218,7 +249,10 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                     child: TextFormField(
                       controller: _password,
                       obscureText: true,
-                      decoration: const InputDecoration(labelText: '密码', hintText: '存于系统钥匙串'),
+                      decoration: const InputDecoration(
+                        labelText: '密码',
+                        hintText: '存于系统钥匙串',
+                      ),
                     ),
                   ),
                 ],
@@ -237,7 +271,10 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                   Expanded(
                     child: SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('HTTPS', style: TextStyle(fontSize: 13)),
+                      title: const Text(
+                        'HTTPS',
+                        style: TextStyle(fontSize: 13),
+                      ),
                       value: _enableSSL,
                       onChanged: (v) => setState(() => _enableSSL = v),
                     ),
@@ -249,9 +286,13 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                   Expanded(
                     child: CheckboxListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('自定义行数上限', style: TextStyle(fontSize: 13)),
+                      title: const Text(
+                        '自定义行数上限',
+                        style: TextStyle(fontSize: 13),
+                      ),
                       value: _useRowLimit,
-                      onChanged: (v) => setState(() => _useRowLimit = v ?? false),
+                      onChanged: (v) =>
+                          setState(() => _useRowLimit = v ?? false),
                     ),
                   ),
                   if (_useRowLimit)
@@ -259,7 +300,9 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                       width: 150,
                       child: TextFormField(
                         controller: _rowLimit,
-                        decoration: const InputDecoration(labelText: 'row_limit'),
+                        decoration: const InputDecoration(
+                          labelText: 'row_limit',
+                        ),
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -272,7 +315,11 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                   OutlinedButton(
                     onPressed: _testing ? null : _test,
                     child: _testing
-                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : const Text('测试连接'),
                   ),
                   const SizedBox(width: TdTokens.space2),
@@ -284,7 +331,14 @@ class _ConnectionFormSheetState extends ConsumerState<ConnectionFormSheet> {
                   FilledButton(
                     onPressed: _saving ? null : _save,
                     child: _saving
-                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Text('保存'),
                   ),
                 ],

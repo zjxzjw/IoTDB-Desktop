@@ -102,9 +102,7 @@ class ConnectionStore {
   Future<void> _persist() async {
     final file = await _file();
     await file.parent.create(recursive: true);
-    final data = {
-      'connections': _connections.map((c) => c.toJson()).toList(),
-    };
+    final data = {'connections': _connections.map((c) => c.toJson()).toList()};
     await file.writeAsString(const JsonEncoder.withIndent('  ').convert(data));
   }
 }

@@ -7,10 +7,10 @@ import '../../../core/network/iotdb_client.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/tdesign_tokens.dart';
 import '../../../shared/confirm_dialog.dart';
-import '../../../shared/empty_state.dart';
 import '../../connections/presentation/connection_form_sheet.dart';
 import '../../connections/presentation/connection_sidebar.dart';
 import '../../database/presentation/database_page.dart';
+import '../../data/presentation/data_browse_page.dart';
 import '../../sql/presentation/sql_workbench_page.dart';
 import '../../users/presentation/users_page.dart';
 
@@ -189,27 +189,10 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
             DatabasePage(),
             SqlWorkbenchPage(),
             UsersPage(),
-            _PlaceholderTab(icon: RemixIcons.bar_chart_2_line, message: '数据分页预览与图表将在 M5 迭代开放'),
+            DataBrowsePage(),
           ],
         ),
       ),
-    );
-  }
-}
-
-/// 未实现模块的占位页
-class _PlaceholderTab extends StatelessWidget {
-  final IconData icon;
-  final String message;
-
-  const _PlaceholderTab({required this.icon, required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return EmptyState(
-      icon: icon,
-      title: message,
-      description: '当前版本暂未开放',
     );
   }
 }

@@ -80,8 +80,12 @@ class Connection {
       enableSSL: json['enableSSL'] as bool? ?? false,
       timeoutMs: json['timeoutMs'] as int? ?? 30000,
       rowLimit: json['rowLimit'] as int?,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int? ?? 0),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(json['updatedAt'] as int? ?? 0),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        json['createdAt'] as int? ?? 0,
+      ),
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(
+        json['updatedAt'] as int? ?? 0,
+      ),
     );
   }
 
