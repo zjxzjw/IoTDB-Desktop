@@ -127,7 +127,7 @@ class DashboardPage extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Text(
-          '数据库服务信息',
+          '服务信息',
           style: TextStyle(
             fontSize: ShadTokens.fontBody,
             fontWeight: FontWeight.w600,
@@ -408,7 +408,9 @@ class _ClusterTable extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(minWidth: constraints.maxWidth),
             child: DataTable(
-              headingRowColor: WidgetStatePropertyAll(ShadTokens.muted),
+              headingRowColor: WidgetStatePropertyAll(
+                ShadTokens.mutedLighter,
+              ),
               horizontalMargin: ShadTokens.space4,
               columnSpacing: ShadTokens.space4,
               columns: [
@@ -492,11 +494,12 @@ class _ClusterTable extends StatelessWidget {
   }
 }
 
-/// 数据库列表表格（名称 + TTL）
+/// 数据库列表表格（名称 + TTL），点击行选中并进入 Tab 工作区
 class _DatabaseTable extends StatelessWidget {
   final QueryResult result;
+  final ValueChanged<List<dynamic>> onSelect;
 
-  const _DatabaseTable({required this.result});
+  const _DatabaseTable({required this.result, required this.onSelect});
 
   int? _columnIndex(String name) {
     for (var i = 0; i < result.columnNames.length; i++) {
@@ -520,9 +523,12 @@ class _DatabaseTable extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(minWidth: constraints.maxWidth),
             child: DataTable(
-              headingRowColor: WidgetStatePropertyAll(ShadTokens.muted),
+              headingRowColor: WidgetStatePropertyAll(
+                ShadTokens.mutedLighter,
+              ),
               horizontalMargin: ShadTokens.space4,
               columnSpacing: ShadTokens.space4,
+              showCheckboxColumn: false,
               columns: [
                 const DataColumn(label: Text('数据库')),
                 if (ttlCol != null) const DataColumn(label: Text('TTL')),
@@ -530,6 +536,7 @@ class _DatabaseTable extends StatelessWidget {
               rows: [
                 for (final row in result.rows)
                   DataRow(
+                    onSelectChanged: (_) => onSelect(row),
                     cells: [
                       DataCell(
                         Text(

@@ -15,6 +15,7 @@ abstract final class ShadTokens {
 
   // ---- muted / secondary / accent ----
   static const Color muted = Color(0xFFF4F4F5); // zinc-100
+  static const Color mutedLighter = Color(0xFFF7F7F8); // 介于 zinc-50 与 zinc-100 之间
   static const Color mutedDark = Color(0xFF27272A); // zinc-800
   static const Color mutedForeground = Color(0xFFA1A1AA); // zinc-400
   static const Color mutedForegroundDark = Color(0xFF52525B); // zinc-600
