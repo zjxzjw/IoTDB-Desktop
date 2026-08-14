@@ -17,3 +17,13 @@ final dashboardRegionProvider = FutureProvider<QueryResult>((ref) {
 final dashboardTimeseriesCountProvider = FutureProvider<QueryResult>((ref) {
   return ref.watch(iotdbClientProvider).query('COUNT TIMESERIES');
 });
+
+/// 集群/节点信息：SHOW CLUSTER（NodeID/NodeType/Status/Host...）
+final dashboardClusterProvider = FutureProvider<QueryResult>((ref) {
+  return ref.watch(iotdbClientProvider).query('SHOW CLUSTER');
+});
+
+/// 检活延迟（毫秒）
+final dashboardLatencyProvider = FutureProvider<int>((ref) {
+  return ref.watch(iotdbClientProvider).ping();
+});

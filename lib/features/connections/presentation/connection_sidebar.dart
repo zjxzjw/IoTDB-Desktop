@@ -18,6 +18,7 @@ class ConnectionSidebar extends ConsumerStatefulWidget {
   final ValueChanged<Connection> onTest;
   final ValueChanged<Connection> onEdit;
   final ValueChanged<Connection> onDelete;
+  final ValueChanged<Connection> onDisconnect;
   final void Function(Connection conn, MetaNode node) onSelectDatabase;
 
   const ConnectionSidebar({
@@ -29,6 +30,7 @@ class ConnectionSidebar extends ConsumerStatefulWidget {
     required this.onTest,
     required this.onEdit,
     required this.onDelete,
+    required this.onDisconnect,
     required this.onSelectDatabase,
   });
 
@@ -141,7 +143,8 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space2),
       children: [
-        for (final conn in widget.connections)
+        for (final conn in widget.connections) ...[
+          const SizedBox(height: ShadTokens.space2),
           _ConnectionNode(
             conn: conn,
             expanded: _expanded.contains(conn.id),
@@ -154,8 +157,13 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
             onTest: () => widget.onTest(conn),
             onEdit: () => widget.onEdit(conn),
             onDelete: () => widget.onDelete(conn),
+            onDisconnect: () {
+              setState(() => _expanded.remove(conn.id));
+              widget.onDisconnect(conn);
+            },
             onSelectDatabase: (node) => widget.onSelectDatabase(conn, node),
           ),
+        ],
       ],
     );
   }
@@ -198,6 +206,7 @@ class _ConnectionNode extends StatelessWidget {
   final VoidCallback onTest;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onDisconnect;
   final ValueChanged<MetaNode> onSelectDatabase;
 
   const _ConnectionNode({
@@ -211,6 +220,7 @@ class _ConnectionNode extends StatelessWidget {
     required this.onTest,
     required this.onEdit,
     required this.onDelete,
+    required this.onDisconnect,
     required this.onSelectDatabase,
   });
 
@@ -292,6 +302,17 @@ class _ConnectionNode extends StatelessWidget {
                       color: ShadTokens.mutedForeground,
                     ),
                   ),
+                  if (active || status == ConnectionStatus.success)
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      tooltip: '断开连接',
+                      onPressed: onDisconnect,
+                      icon: const Icon(
+                        RemixIcons.link_unlink,
+                        size: 16,
+                        color: ShadTokens.mutedForeground,
+                      ),
+                    ),
                   PopupMenuButton<_ConnAction>(
                     tooltip: '操作',
                     icon: const Icon(
@@ -337,7 +358,12 @@ class _ConnectionNode extends StatelessWidget {
         ),
         if (expanded)
           Padding(
-            padding: const EdgeInsets.only(left: ShadTokens.space3),
+            padding: const EdgeInsets.fromLTRB(
+              ShadTokens.space3,
+              ShadTokens.space2,
+              0,
+              0,
+            ),
             child: _DatabaseList(conn: conn, onSelectDatabase: onSelectDatabase),
           ),
       ],
@@ -362,6 +388,8 @@ class _DatabaseList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final result = ref.watch(connectionDatabaseListProvider(conn));
+    final selected = ref.watch(metadataSelectionProvider);
+    final isLight = Theme.of(context).brightness == Brightness.light;
     return result.when(
       loading: () => const Padding(
         padding: EdgeInsets.all(ShadTokens.space3),
@@ -398,29 +426,51 @@ class _DatabaseList extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 for (final row in r.rows)
-                  ListTile(
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: ShadTokens.space2,
-                    ),
-                    leading: const Icon(
-                      RemixIcons.database_2_line,
-                      size: 15,
-                      color: ShadTokens.primary,
-                    ),
-                    title: Text(
-                      row.first.toString(),
-                      style: const TextStyle(fontSize: ShadTokens.fontBody),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onTap: () => onSelectDatabase(
-                      MetaNode(
-                        row.first.toString(),
-                        MetaNodeType.database,
-                        rowToAttrs(r, row),
-                      ),
-                    ),
+                  Builder(
+                    builder: (context) {
+                      final isSelected =
+                          selected?.path == row.first.toString();
+                      return ListTile(
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: ShadTokens.space2,
+                        ),
+                        leading: Icon(
+                          RemixIcons.database_2_line,
+                          size: 15,
+                          color: isSelected
+                              ? (isLight
+                                    ? ShadTokens.primary
+                                    : ShadTokens.primaryDark)
+                              : ShadTokens.mutedForeground,
+                        ),
+                        title: Text(
+                          row.first.toString(),
+                          style: TextStyle(
+                            fontSize: ShadTokens.fontBody,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                            color: isSelected
+                                ? (isLight
+                                      ? ShadTokens.foreground
+                                      : ShadTokens.foregroundDark)
+                                : (isLight
+                                      ? ShadTokens.mutedForeground
+                                      : ShadTokens.mutedForegroundDark),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onTap: () => onSelectDatabase(
+                          MetaNode(
+                            row.first.toString(),
+                            MetaNodeType.database,
+                            rowToAttrs(r, row),
+                          ),
+                        ),
+                      );
+                    },
                   ),
               ],
             ),

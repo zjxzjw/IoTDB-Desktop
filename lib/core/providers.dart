@@ -121,6 +121,8 @@ class ConnectionStatusNotifier extends Notifier<Map<String, ConnectionStatus>> {
   void markSuccess(String id) => state = {...state, id: ConnectionStatus.success};
 
   void markFailure(String id) => state = {...state, id: ConnectionStatus.failure};
+
+  void disconnect(String id) => state = {...state, id: ConnectionStatus.unknown};
 }
 
 /// 当前连接的 REST 客户端（随 activeConnection 变化重建）
@@ -177,4 +179,21 @@ class WorkspaceTabNotifier extends Notifier<int> {
   int build() => 0;
 
   void select(int index) => state = index;
+}
+
+/// 工作区显示视图：仪表盘独立页面 / Tab 工作区
+enum WorkspaceView { dashboard, tabs }
+
+/// 工作区当前视图（打开连接默认展示仪表盘，点击数据库切到 Tab 工作区）
+final workspaceViewProvider = NotifierProvider<WorkspaceViewNotifier, WorkspaceView>(
+  WorkspaceViewNotifier.new,
+);
+
+class WorkspaceViewNotifier extends Notifier<WorkspaceView> {
+  @override
+  WorkspaceView build() => WorkspaceView.dashboard;
+
+  void showDashboard() => state = WorkspaceView.dashboard;
+
+  void showTabs() => state = WorkspaceView.tabs;
 }

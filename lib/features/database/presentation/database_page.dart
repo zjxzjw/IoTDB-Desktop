@@ -277,48 +277,63 @@ class _DatabaseTable extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final columns = [...result.columnNames, ''];
     final dbCol = 0;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SingleChildScrollView(
-        child: DataTable(
-          headingRowColor: WidgetStatePropertyAll(ShadTokens.muted),
-          horizontalMargin: ShadTokens.space4,
-          columnSpacing: ShadTokens.space4,
-          columns: [for (final name in columns) DataColumn(label: Text(name))],
-          rows: [
-            for (final row in result.rows)
-              DataRow(
-                cells: [
-                  for (var i = 0; i < result.columnNames.length; i++)
-                    DataCell(
-                      Text(
-                        i < row.length ? '${row[i]}' : '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: DataTable(
+              headingRowColor: WidgetStatePropertyAll(ShadTokens.muted),
+              horizontalMargin: ShadTokens.space4,
+              columnSpacing: ShadTokens.space4,
+              columns: [
+                for (final name in columns) DataColumn(label: Text(name)),
+              ],
+              rows: [
+                for (final row in result.rows)
+                  DataRow(
+                    cells: [
+                      for (var i = 0; i < result.columnNames.length; i++)
+                        DataCell(
+                          Text(
+                            i < row.length ? '${row[i]}' : '',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              tooltip: 'TTL',
+                              icon: const Icon(RemixIcons.timer_line, size: 16),
+                              onPressed: () => showTtlDialog(
+                                context,
+                                ref,
+                                database: '${row[dbCol]}',
+                              ),
+                            ),
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              tooltip: '删除',
+                              icon: const Icon(
+                                RemixIcons.delete_bin_line,
+                                size: 16,
+                                color: ShadTokens.destructive,
+                              ),
+                              onPressed: () => onDelete('${row[dbCol]}'),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  DataCell(
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          visualDensity: VisualDensity.compact,
-                          tooltip: 'TTL',
-                          icon: const Icon(RemixIcons.timer_line, size: 16),
-                          onPressed: () => showTtlDialog(context, ref, database: '${row[dbCol]}'),
-                        ),
-                        IconButton(
-                          visualDensity: VisualDensity.compact,
-                          tooltip: '删除',
-                          icon: const Icon(RemixIcons.delete_bin_line, size: 16, color: ShadTokens.destructive),
-                          onPressed: () => onDelete('${row[dbCol]}'),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
-                ],
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
