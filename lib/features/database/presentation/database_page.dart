@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
+import '../../../core/models/metadata_node.dart';
 import '../../../core/models/query_result.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/shadcn_tokens.dart';
@@ -23,11 +24,11 @@ class DatabasePage extends ConsumerStatefulWidget {
 }
 
 class _DatabasePageState extends ConsumerState<DatabasePage> {
-  MetaNode? _selected; // 当前选中的设备/测点节点
+  void _onNodeTap(MetaNode node) =>
+      ref.read(metadataSelectionProvider.notifier).select(node);
 
-  void _onNodeTap(MetaNode node) => setState(() => _selected = node);
-
-  void _clearSelection() => setState(() => _selected = null);
+  void _clearSelection() =>
+      ref.read(metadataSelectionProvider.notifier).clear();
 
   @override
   Widget build(BuildContext context) {
@@ -85,8 +86,12 @@ class _DatabasePageState extends ConsumerState<DatabasePage> {
             visualDensity: VisualDensity.compact,
             tooltip: '刷新元数据',
             onPressed: () {
+              final active = ref.read(activeConnectionProvider);
+              if (active != null) {
+                ref.invalidate(connectionDatabaseListProvider(active));
+              }
               ref.invalidate(databaseListProvider);
-              setState(() => _selected = null);
+              _clearSelection();
             },
             icon: const Icon(RemixIcons.refresh_line, size: 18),
           ),
@@ -96,7 +101,7 @@ class _DatabasePageState extends ConsumerState<DatabasePage> {
   }
 
   Widget _buildDetailPanel() {
-    final selected = _selected;
+    final selected = ref.watch(metadataSelectionProvider);
     if (selected == null) {
       return const _DatabaseListPanel();
     }
@@ -134,10 +139,54 @@ class _DatabasePageState extends ConsumerState<DatabasePage> {
         const Divider(height: 1),
         Expanded(
           child: switch (selected.type) {
+            MetaNodeType.database => _DatabaseDetailPanel(db: selected),
             MetaNodeType.device => _DevicePanel(device: selected),
             MetaNodeType.timeseries => _TimeseriesDetail(node: selected, onDeleted: _clearSelection),
-            _ => const SizedBox.shrink(),
           },
+        ),
+      ],
+    );
+  }
+}
+
+/// 数据库详情面板：该数据库下的设备 → 测点（懒加载）
+class _DatabaseDetailPanel extends ConsumerWidget {
+  final MetaNode db;
+
+  const _DatabaseDetailPanel({required this.db});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space4, vertical: ShadTokens.space3),
+          child: Row(
+            children: [
+              const Icon(RemixIcons.server_line, size: 16, color: ShadTokens.primary),
+              const SizedBox(width: ShadTokens.space2),
+              const Text(
+                '设备与测点',
+                style: TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600),
+              ),
+              const Spacer(),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                tooltip: '刷新',
+                onPressed: () => ref.invalidate(deviceListProvider(db.path)),
+                icon: const Icon(RemixIcons.refresh_line, size: 18),
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: MetadataTree(
+            databases: [db],
+            onTap: (node) =>
+                ref.read(metadataSelectionProvider.notifier).select(node),
+          ),
         ),
       ],
     );
@@ -163,6 +212,10 @@ class _DatabaseListPanel extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('数据库已删除')));
       }
       ref.invalidate(databaseListProvider);
+      final active = ref.read(activeConnectionProvider);
+      if (active != null) {
+        ref.invalidate(connectionDatabaseListProvider(active));
+      }
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('删除失败：$e')));

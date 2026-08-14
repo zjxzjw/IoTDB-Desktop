@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../../../core/models/connection.dart';
+import '../../../core/models/metadata_node.dart';
 import '../../../core/network/iotdb_client.dart';
 import '../../../core/providers.dart';
 import '../../../core/storage/app_settings_store.dart';
@@ -55,8 +56,20 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     ref.read(sidebarWidthProvider.notifier).setWidth(_sidebarWidth);
   }
 
-  void _openWorkspace(WidgetRef ref, Connection conn) {
-    ref.read(activeConnectionProvider.notifier).set(conn);
+  Future<void> _openWorkspace(WidgetRef ref, Connection conn) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final ms = await IotdbClient(conn).ping();
+      ref.read(connectionStatusProvider.notifier).markSuccess(conn.id);
+      ref.read(metadataSelectionProvider.notifier).clear();
+      ref.read(activeConnectionProvider.notifier).set(conn);
+      messenger.showSnackBar(
+        SnackBar(content: Text('连接成功（${ms}ms），已进入工作区')),
+      );
+    } catch (e) {
+      ref.read(connectionStatusProvider.notifier).markFailure(conn.id);
+      messenger.showSnackBar(SnackBar(content: Text('连接失败：$e')));
+    }
   }
 
   @override
@@ -78,6 +91,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     onTest: _noop,
                     onEdit: _noop,
                     onDelete: _noop,
+                    onSelectDatabase: _noopSelect,
                   ),
                   error: (e, _) => const ConnectionSidebar(
                     connections: [],
@@ -86,6 +100,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     onTest: _noop,
                     onEdit: _noop,
                     onDelete: _noop,
+                    onSelectDatabase: _noopSelect,
                   ),
                   data: (list) => ConnectionSidebar(
                     connections: list,
@@ -95,6 +110,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     onEdit: (c) =>
                         showConnectionFormDialog(context, ref, editing: c),
                     onDelete: (c) => _deleteConnection(context, ref, c),
+                    onSelectDatabase: (c, node) =>
+                        _selectDatabase(ref, c, node),
                   ),
                 ),
           ),
@@ -115,6 +132,23 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   static void _noop(Connection c) {}
 
+  static void _noopSelect(Connection c, MetaNode node) {}
+
+  /// 点击侧栏数据库：激活对应连接，切到「数据库管理」并选中该数据库
+  Future<void> _selectDatabase(
+    WidgetRef ref,
+    Connection conn,
+    MetaNode node,
+  ) async {
+    final active = ref.read(activeConnectionProvider);
+    if (active?.id != conn.id) {
+      await _openWorkspace(ref, conn);
+      if (ref.read(activeConnectionProvider)?.id != conn.id) return;
+    }
+    ref.read(workspaceTabProvider.notifier).select(0);
+    ref.read(metadataSelectionProvider.notifier).select(node);
+  }
+
   Future<void> _testConnection(
     BuildContext context,
     WidgetRef ref,
@@ -124,6 +158,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     try {
       final client = IotdbClient(conn);
       final ms = await client.ping();
+      ref.read(connectionStatusProvider.notifier).markSuccess(conn.id);
       String version = '';
       try {
         final r = await client.query('SHOW VERSION');
@@ -137,7 +172,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         ),
       );
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('$e')));
+      ref.read(connectionStatusProvider.notifier).markFailure(conn.id);
+      messenger.showSnackBar(SnackBar(content: Text('连接失败：$e')));
     }
   }
 
@@ -184,7 +220,7 @@ class _WelcomePane extends ConsumerWidget {
           ),
           const SizedBox(height: ShadTokens.space2),
           const Text(
-            '左侧管理 REST 连接，双击或点击连接进入工作区',
+            '点击左侧连接展开数据库列表并进入工作区',
             style: TextStyle(fontSize: 13, color: ShadTokens.mutedForeground),
           ),
         ],
@@ -239,8 +275,6 @@ class WorkspaceScreen extends ConsumerStatefulWidget {
 }
 
 class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
-  int _tab = 0;
-
   @override
   Widget build(BuildContext context) {
     final conn = ref.watch(activeConnectionProvider);
@@ -251,6 +285,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
         ),
       );
     }
+    final tab = ref.watch(workspaceTabProvider);
     return DefaultTabController(
       length: 4,
       child: Scaffold(
@@ -281,14 +316,17 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
               padding: const EdgeInsets.only(right: ShadTokens.space3),
               child: IconButton(
                 tooltip: '返回连接管理',
-                onPressed: () =>
-                    ref.read(activeConnectionProvider.notifier).clear(),
+                onPressed: () {
+                  ref.read(activeConnectionProvider.notifier).clear();
+                  ref.read(metadataSelectionProvider.notifier).clear();
+                },
                 icon: const Icon(RemixIcons.arrow_left_line, size: 18),
               ),
             ),
           ],
           bottom: TabBar(
-            onTap: (i) => setState(() => _tab = i),
+            onTap: (i) =>
+                ref.read(workspaceTabProvider.notifier).select(i),
             tabs: const [
               Tab(text: '数据库管理'),
               Tab(text: 'SQL 工作台'),
@@ -298,7 +336,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
           ),
         ),
         body: IndexedStack(
-          index: _tab,
+          index: tab,
           children: const [
             DatabasePage(),
             SqlWorkbenchPage(),

@@ -2,34 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
-import '../../../core/models/query_result.dart';
+import '../../../core/models/metadata_node.dart';
 import '../../../core/theme/shadcn_tokens.dart';
 import '../data/database_providers.dart';
-
-enum MetaNodeType { database, device, timeseries }
-
-/// 元数据树节点
-class MetaNode {
-  final String path;
-  final MetaNodeType type;
-  final Map<String, String> attrs;
-
-  const MetaNode(this.path, this.type, [this.attrs = const {}]);
-
-  String get name {
-    final parts = path.split('.');
-    return parts.isEmpty ? path : parts.last;
-  }
-}
-
-/// 把 QueryResult 的行转成列名→值映射
-Map<String, String> rowToAttrs(QueryResult result, List<dynamic> row) {
-  final map = <String, String>{};
-  for (var i = 0; i < result.columnNames.length && i < row.length; i++) {
-    map[result.columnNames[i]] = row[i]?.toString() ?? 'null';
-  }
-  return map;
-}
 
 /// 元数据树：数据库 → 设备 → 测点（懒加载）
 /// [databases] 根节点列表；[onTap] 点击设备/测点节点回调

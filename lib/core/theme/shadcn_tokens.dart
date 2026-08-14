@@ -54,6 +54,8 @@ abstract final class ShadTokens {
   static const Color sidebarDark = Color(0xFF18181B); // zinc-900
   static const Color sidebarHover = Color(0xFFE4E4E7); // zinc-200
   static const Color sidebarHoverDark = Color(0xFF27272A); // zinc-800
+  static const Color sidebarActive = Color(0xFFE4E4E7); // zinc-200
+  static const Color sidebarActiveDark = Color(0xFF27272A); // zinc-800
 
   // ---- 占位 / 禁用文字 ----
   static const Color placeholder = Color(0xFFA1A1AA);

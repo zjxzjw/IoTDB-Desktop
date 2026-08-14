@@ -78,6 +78,10 @@ class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('数据库创建成功')));
       ref.invalidate(databaseListProvider);
+      final active = ref.read(activeConnectionProvider);
+      if (active != null) {
+        ref.invalidate(connectionDatabaseListProvider(active));
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('创建失败：$e')));

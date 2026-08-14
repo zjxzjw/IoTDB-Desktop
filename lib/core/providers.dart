@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'models/connection.dart';
+import 'models/metadata_node.dart';
 import 'models/query_result.dart';
 import 'network/iotdb_client.dart';
 import 'storage/app_settings_store.dart';
@@ -104,6 +105,24 @@ class ActiveConnectionNotifier extends Notifier<Connection?> {
   void clear() => state = null;
 }
 
+/// 连接连通状态（点击连接时 ping 判定）
+enum ConnectionStatus { unknown, success, failure }
+
+/// 各连接的连通状态（内存态，key = 连接 id）
+final connectionStatusProvider =
+    NotifierProvider<ConnectionStatusNotifier, Map<String, ConnectionStatus>>(
+      ConnectionStatusNotifier.new,
+    );
+
+class ConnectionStatusNotifier extends Notifier<Map<String, ConnectionStatus>> {
+  @override
+  Map<String, ConnectionStatus> build() => const {};
+
+  void markSuccess(String id) => state = {...state, id: ConnectionStatus.success};
+
+  void markFailure(String id) => state = {...state, id: ConnectionStatus.failure};
+}
+
 /// 当前连接的 REST 客户端（随 activeConnection 变化重建）
 final iotdbClientProvider = Provider<IotdbClient>((ref) {
   final conn = ref.watch(activeConnectionProvider);
@@ -125,4 +144,37 @@ class DatabaseListNotifier extends AsyncNotifier<QueryResult> {
     final client = ref.watch(iotdbClientProvider);
     return client.query('SHOW DATABASES DETAILS');
   }
+}
+
+/// 每个连接独立的数据库列表（与 activeConnection 解耦，侧栏可多连接同时展开）
+final connectionDatabaseListProvider =
+    FutureProvider.family<QueryResult, Connection>((ref, conn) {
+  return IotdbClient(conn).query('SHOW DATABASES DETAILS');
+});
+
+/// 主区域当前选中的元数据节点（侧栏 / 数据库管理页共享）
+final metadataSelectionProvider =
+    NotifierProvider<MetadataSelectionNotifier, MetaNode?>(
+      MetadataSelectionNotifier.new,
+    );
+
+class MetadataSelectionNotifier extends Notifier<MetaNode?> {
+  @override
+  MetaNode? build() => null;
+
+  void select(MetaNode? node) => state = node;
+
+  void clear() => state = null;
+}
+
+/// 工作区 Tab 索引（侧栏跳转时同步切换）
+final workspaceTabProvider = NotifierProvider<WorkspaceTabNotifier, int>(
+  WorkspaceTabNotifier.new,
+);
+
+class WorkspaceTabNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void select(int index) => state = index;
 }
