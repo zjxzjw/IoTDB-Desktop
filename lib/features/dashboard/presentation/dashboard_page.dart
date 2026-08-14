@@ -65,8 +65,7 @@ class DashboardPage extends ConsumerWidget {
               LayoutBuilder(
                 builder: (context, constraints) {
                   const spacing = ShadTokens.space3;
-                  final cardWidth =
-                      (constraints.maxWidth - spacing * 4) / 5;
+                  final cardWidth = (constraints.maxWidth - spacing * 4) / 5;
                   return Wrap(
                     spacing: spacing,
                     runSpacing: spacing,
@@ -76,8 +75,8 @@ class DashboardPage extends ConsumerWidget {
                         title: '服务版本',
                         icon: RemixIcons.leaf_line,
                         result: ref.watch(dashboardVersionProvider),
-                        valueOf: (r) => r.rows.isNotEmpty &&
-                                r.rows.first.isNotEmpty
+                        valueOf: (r) =>
+                            r.rows.isNotEmpty && r.rows.first.isNotEmpty
                             ? '${r.rows.first.first}'
                             : '—',
                       ),
@@ -93,8 +92,8 @@ class DashboardPage extends ConsumerWidget {
                         title: '测点总数',
                         icon: RemixIcons.line_chart_line,
                         result: ref.watch(dashboardTimeseriesCountProvider),
-                        valueOf: (r) => r.rows.isNotEmpty &&
-                                r.rows.first.isNotEmpty
+                        valueOf: (r) =>
+                            r.rows.isNotEmpty && r.rows.first.isNotEmpty
                             ? '${r.rows.first.first}'
                             : '—',
                       ),
@@ -323,11 +322,7 @@ class _StatusCard extends ConsumerWidget {
         children: [
           const Row(
             children: [
-              Icon(
-                RemixIcons.wifi_line,
-                size: 16,
-                color: ShadTokens.primary,
-              ),
+              Icon(RemixIcons.wifi_line, size: 16, color: ShadTokens.primary),
               SizedBox(width: ShadTokens.space2),
               Expanded(
                 child: Text(
@@ -408,9 +403,7 @@ class _ClusterTable extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(minWidth: constraints.maxWidth),
             child: DataTable(
-              headingRowColor: WidgetStatePropertyAll(
-                ShadTokens.mutedLighter,
-              ),
+              headingRowColor: WidgetStatePropertyAll(ShadTokens.mutedLighter),
               horizontalMargin: ShadTokens.space4,
               columnSpacing: ShadTokens.space4,
               columns: [
@@ -444,8 +437,10 @@ class _ClusterTable extends StatelessWidget {
                         DataCell(
                           Builder(
                             builder: (context) {
-                              final status = _cell(statusCol, row)
-                                  .toLowerCase();
+                              final status = _cell(
+                                statusCol,
+                                row,
+                              ).toLowerCase();
                               final color = status == 'running'
                                   ? ShadTokens.success
                                   : ShadTokens.destructive;
@@ -523,9 +518,7 @@ class _DatabaseTable extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(minWidth: constraints.maxWidth),
             child: DataTable(
-              headingRowColor: WidgetStatePropertyAll(
-                ShadTokens.mutedLighter,
-              ),
+              headingRowColor: WidgetStatePropertyAll(ShadTokens.mutedLighter),
               horizontalMargin: ShadTokens.space4,
               columnSpacing: ShadTokens.space4,
               showCheckboxColumn: false,

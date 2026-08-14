@@ -3,6 +3,7 @@ import 'package:code_text_field/code_text_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
+import '../../../core/models/metadata_node.dart';
 import '../../../core/network/statement_router.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/shadcn_tokens.dart';
@@ -217,6 +218,14 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     );
   }
 
+  /// 从选中的元数据节点推导当前数据库（数据库节点直接取路径，设备/测点取路径前两段）
+  String? _databaseOf(MetaNode? node) {
+    if (node == null) return null;
+    if (node.type == MetaNodeType.database) return node.path;
+    final parts = node.path.split('.');
+    return parts.length >= 2 ? parts.sublist(0, 2).join('.') : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final paths = ref.watch(timeseriesAutoCompleteProvider).value;
@@ -226,10 +235,11 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
           if (row.isNotEmpty) row.first.toString(),
     ];
     final current = _current;
+    final currentDb = _databaseOf(ref.watch(metadataSelectionProvider));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildTabBar(),
+        _buildTabBar(currentDb),
         const Divider(height: 1),
         Expanded(
           flex: 5,
@@ -254,7 +264,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     );
   }
 
-  Widget _buildTabBar() {
+  Widget _buildTabBar(String? currentDb) {
     return Container(
       height: 40,
       decoration: BoxDecoration(
@@ -263,6 +273,39 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
       ),
       child: Row(
         children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space3),
+            decoration: const BoxDecoration(
+              border: Border(right: BorderSide(color: ShadTokens.divider)),
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 240),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    RemixIcons.database_2_line,
+                    size: 15,
+                    color: ShadTokens.primary,
+                  ),
+                  const SizedBox(width: ShadTokens.space2),
+                  Flexible(
+                    child: Text(
+                      currentDb ?? '未选择数据库',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: ShadTokens.fontBody,
+                        color: currentDb == null
+                            ? ShadTokens.placeholder
+                            : ShadTokens.foreground,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           Expanded(
             child: ListView(
               scrollDirection: Axis.horizontal,

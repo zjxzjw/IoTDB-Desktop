@@ -322,7 +322,32 @@ class _SidebarResizeHandle extends StatelessWidget {
   }
 }
 
-/// 工作区：仪表盘独立页面（默认）或 Tab 容器（数据库管理 / SQL 工作台 / 用户与权限 / 数据浏览）
+/// 工作区上下分区横向拖拽手柄：鼠标悬停显示调整光标，拖拽改变 SQL 区高度
+class _WorkspaceResizeHandle extends StatelessWidget {
+  final ValueChanged<double> onDrag;
+
+  const _WorkspaceResizeHandle({required this.onDrag});
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeUpDown,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onVerticalDragUpdate: (d) => onDrag(d.delta.dy),
+        onVerticalDragEnd: (_) {},
+        child: SizedBox(
+          height: 6,
+          child: Center(
+            child: Container(width: double.infinity, height: 1, color: ShadTokens.border),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 工作区：仪表盘独立页面（默认）或 Tab 容器（SQL 工作台 / 数据库管理 / 用户与权限 / 数据浏览）
 class WorkspaceScreen extends ConsumerStatefulWidget {
   const WorkspaceScreen({super.key});
 
@@ -331,6 +356,48 @@ class WorkspaceScreen extends ConsumerStatefulWidget {
 }
 
 class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
+  static const double _tabBarHeight = 48;
+  static const double _resizeHandleHeight = 6;
+  static const double _minSqlHeight = 120;
+  static const double _minContentHeight = 120;
+
+  /// 默认收起：下方仅显示 Tab 切换条，不显示内容区
+  bool _tabsExpanded = false;
+
+  /// SQL 区像素高度（首次展开按总量 × 0.45 初始化，之后记住用户拖拽结果）
+  double _sqlHeight = 0;
+
+  void _expand(double total) {
+    if (_sqlHeight <= 0) {
+      final maxSql = (total -
+              _tabBarHeight -
+              _resizeHandleHeight -
+              _minContentHeight)
+          .clamp(_minSqlHeight, double.infinity);
+      _sqlHeight = (total * 0.45).clamp(_minSqlHeight, maxSql);
+    }
+    setState(() => _tabsExpanded = true);
+  }
+
+  void _collapse() => setState(() => _tabsExpanded = false);
+
+  void _toggle(double total) => _tabsExpanded ? _collapse() : _expand(total);
+
+  void _onResizeDrag(double dy, double total) {
+    if (!_tabsExpanded) {
+      _expand(total);
+      return;
+    }
+    setState(() {
+      final maxSql = (total -
+              _tabBarHeight -
+              _resizeHandleHeight -
+              _minContentHeight)
+          .clamp(_minSqlHeight, double.infinity);
+      _sqlHeight = (_sqlHeight + dy).clamp(_minSqlHeight, maxSql);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final conn = ref.watch(activeConnectionProvider);
@@ -345,7 +412,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
     final showTabs = view == WorkspaceView.tabs;
     final tab = ref.watch(workspaceTabProvider);
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: Scaffold(
         appBar: AppBar(
           titleSpacing: ShadTokens.space4,
@@ -450,28 +517,79 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
               ),
             ],
           ],
-          bottom: showTabs
-              ? TabBar(
-                  onTap: (i) =>
-                      ref.read(workspaceTabProvider.notifier).select(i),
-                  tabs: const [
-                    Tab(text: '数据库管理'),
-                    Tab(text: 'SQL 工作台'),
-                    Tab(text: '用户与权限'),
-                    Tab(text: '数据浏览'),
-                  ],
-                )
-              : null,
         ),
         body: showTabs
-            ? IndexedStack(
-                index: tab,
-                children: const [
-                  DatabasePage(),
-                  SqlWorkbenchPage(),
-                  UsersPage(),
-                  DataBrowsePage(),
-                ],
+            ? LayoutBuilder(
+                builder: (context, constraints) {
+                  final total = constraints.maxHeight;
+                  final fixed = _tabBarHeight + _resizeHandleHeight;
+                  final maxSql = (total - fixed - _minContentHeight)
+                      .clamp(_minSqlHeight, double.infinity);
+                  final sqlHeight = _tabsExpanded
+                      ? _sqlHeight.clamp(_minSqlHeight, maxSql)
+                      : total - fixed;
+                  return Column(
+                    children: [
+                      SizedBox(height: sqlHeight, child: const SqlWorkbenchPage()),
+                      _WorkspaceResizeHandle(
+                        onDrag: (dy) => _onResizeDrag(dy, total),
+                      ),
+                      SizedBox(
+                        height: _tabBarHeight,
+                        child: Material(
+                          color: ShadTokens.card,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TabBar(
+                                  onTap: (i) {
+                                    ref
+                                        .read(workspaceTabProvider.notifier)
+                                        .select(i);
+                                    if (!_tabsExpanded) _expand(total);
+                                  },
+                                  tabs: const [
+                                    Tab(text: '数据库管理'),
+                                    Tab(text: '用户与权限'),
+                                    Tab(text: '数据浏览'),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                visualDensity: VisualDensity.compact,
+                                tooltip: _tabsExpanded ? '收起' : '展开',
+                                onPressed: () => _toggle(total),
+                                icon: Icon(
+                                  _tabsExpanded
+                                      ? RemixIcons.arrow_down_s_line
+                                      : RemixIcons.arrow_up_s_line,
+                                  size: 18,
+                                  color: ShadTokens.mutedForeground,
+                                ),
+                              ),
+                              const SizedBox(width: ShadTokens.space2),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (_tabsExpanded)
+                        SizedBox(
+                          height: (total - sqlHeight - fixed).clamp(
+                            _minContentHeight,
+                            double.infinity,
+                          ),
+                          child: IndexedStack(
+                            index: tab,
+                            children: const [
+                              DatabasePage(),
+                              UsersPage(),
+                              DataBrowsePage(),
+                            ],
+                          ),
+                        ),
+                    ],
+                  );
+                },
               )
             : const DashboardPage(),
       ),

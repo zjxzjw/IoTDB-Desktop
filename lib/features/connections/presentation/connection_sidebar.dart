@@ -240,7 +240,7 @@ class _ConnectionNode extends StatelessWidget {
           child: InkWell(
             onTap: onActivate,
             borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
-            hoverColor: ShadTokens.sidebarHover,
+            hoverColor: isLight ? Colors.white : ShadTokens.sidebarHoverDark,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: ShadTokens.space2,
