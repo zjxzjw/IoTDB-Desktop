@@ -240,22 +240,17 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildTabBar(currentDb),
-        const Divider(height: 1),
         Expanded(
           flex: 5,
           child: current == null
               ? const SizedBox.shrink()
-              : Padding(
-                  padding: const EdgeInsets.fromLTRB(ShadTokens.space3, ShadTokens.space2, ShadTokens.space3, 0),
-                  child: SqlEditor(
-                    controller: current.controller,
-                    focusNode: current.focusNode,
-                    onRun: _run,
-                    timeseriesPaths: timeseriesPaths,
-                  ),
+              : SqlEditor(
+                  controller: current.controller,
+                  focusNode: current.focusNode,
+                  onRun: _run,
+                  timeseriesPaths: timeseriesPaths,
                 ),
         ),
-        const Divider(height: 1),
         Expanded(
           flex: 3,
           child: current == null ? const SizedBox.shrink() : ResultPanel(results: current.results),
@@ -267,10 +262,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
   Widget _buildTabBar(String? currentDb) {
     return Container(
       height: 40,
-      decoration: BoxDecoration(
-        color: ShadTokens.card,
-        border: Border(bottom: BorderSide(color: ShadTokens.divider)),
-      ),
+      color: ShadTokens.card,
       child: Row(
         children: [
           Container(
@@ -330,7 +322,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
           const SizedBox(width: ShadTokens.space2),
           FilledButton.icon(
             onPressed: _run,
-            icon: const Icon(RemixIcons.play_line, size: 16),
+            icon: const Icon(RemixIcons.arrow_right_s_line, size: 16),
             label: const Text('运行'),
           ),
           const SizedBox(width: ShadTokens.space3),

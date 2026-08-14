@@ -201,6 +201,11 @@ ThemeData buildAppTheme({Brightness brightness = Brightness.light}) {
       unselectedLabelColor: ShadTokens.mutedForeground,
       indicatorColor: ShadTokens.foreground,
       dividerColor: Colors.transparent,
+      overlayColor: WidgetStateProperty.resolveWith(
+        (states) => states.contains(WidgetState.hovered)
+            ? Colors.transparent
+            : null,
+      ),
       labelStyle: const TextStyle(
         fontSize: ShadTokens.fontBody,
         fontWeight: FontWeight.w500,

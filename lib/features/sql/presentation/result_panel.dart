@@ -49,7 +49,6 @@ class ResultPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     if (results.isEmpty) {
       return const EmptyState(
-        icon: RemixIcons.play_circle_line,
         title: '执行 SQL 以查看结果',
         description: 'Cmd/Ctrl + Enter 快速执行',
       );

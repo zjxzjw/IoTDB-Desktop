@@ -146,17 +146,46 @@ class _SqlEditorState extends State<SqlEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
     return Column(
       children: [
         Expanded(
           child: Focus(
             onKeyEvent: _onKeyEvent,
-            child: CodeField(
-              controller: widget.controller,
-              focusNode: widget.focusNode,
-              textStyle: const TextStyle(fontSize: 13.5, fontFamily: 'Menlo', height: 1.5),
-              cursorColor: Theme.of(context).colorScheme.primary,
-              decoration: BoxDecoration(color: Colors.transparent),
+            child: InputDecorationTheme(
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              border: InputBorder.none,
+              child: CodeField(
+                controller: widget.controller,
+                focusNode: widget.focusNode,
+                expands: true,
+                background: isLight
+                    ? ShadTokens.background
+                    : ShadTokens.backgroundDark,
+                padding: const EdgeInsets.only(left: 8, right: 8),
+                lineNumberStyle: LineNumberStyle(
+                  width: 48,
+                  margin: 8,
+                  background: isLight ? ShadTokens.muted : ShadTokens.mutedDark,
+                  textStyle: TextStyle(
+                    fontSize: 11,
+                    color: isLight
+                        ? ShadTokens.textDisabled
+                        : ShadTokens.mutedForegroundDark,
+                  ),
+                ),
+                textStyle: TextStyle(
+                  fontSize: 13.5,
+                  fontFamily: 'Menlo',
+                  height: 1.5,
+                  color: isLight
+                      ? ShadTokens.foreground
+                      : ShadTokens.foregroundDark,
+                ),
+                cursorColor: Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
         ),
