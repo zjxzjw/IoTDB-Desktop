@@ -419,7 +419,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
           title: Row(
             children: [
               const Icon(
-                RemixIcons.database_line,
+                RemixIcons.server_line,
                 size: 18,
                 color: ShadTokens.primary,
               ),
@@ -546,7 +546,6 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                                     ref
                                         .read(workspaceTabProvider.notifier)
                                         .select(i);
-                                    if (!_tabsExpanded) _expand(total);
                                   },
                                   tabs: const [
                                     Tab(text: '数据库管理'),
