@@ -179,16 +179,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     ref.read(workspaceTabProvider.notifier).select(0);
   }
 
-  /// 点击侧栏仪表盘：未打开该连接时自动连接，然后切到「仪表盘」独立页面
-  Future<void> _openDashboard(WidgetRef ref, Connection conn) async {
-    final active = ref.read(activeConnectionProvider);
-    if (active?.id != conn.id) {
-      await _openWorkspace(ref, conn);
-      if (ref.read(activeConnectionProvider)?.id != conn.id) return;
-    }
-    ref.read(workspaceViewProvider.notifier).showDashboard();
-  }
-
   Future<void> _testConnection(
     BuildContext context,
     WidgetRef ref,
