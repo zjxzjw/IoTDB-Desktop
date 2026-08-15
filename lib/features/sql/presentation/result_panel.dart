@@ -58,6 +58,7 @@ class ResultPanel extends StatelessWidget {
       return const Center(child: CircularProgressIndicator(strokeWidth: 2));
     }
     final errorCount = results.where((r) => r.kind == SqlRunKind.error).length;
+    final singleQuery = results.length == 1 ? results.first.query : null;
     return Column(
       children: [
         if (results.length > 1)
@@ -74,9 +75,11 @@ class ResultPanel extends StatelessWidget {
             ),
           ),
         Expanded(
-          child: ListView(
-            children: [for (final r in results) _ResultItem(result: r)],
-          ),
+          child: singleQuery != null
+              ? _ResultItem(result: results.first, fill: true)
+              : ListView(
+                  children: [for (final r in results) _ResultItem(result: r)],
+                ),
         ),
       ],
     );
@@ -85,8 +88,9 @@ class ResultPanel extends StatelessWidget {
 
 class _ResultItem extends StatelessWidget {
   final SqlRunResult result;
+  final bool fill;
 
-  const _ResultItem({required this.result});
+  const _ResultItem({required this.result, this.fill = false});
 
   @override
   Widget build(BuildContext context) {
@@ -121,10 +125,14 @@ class _ResultItem extends StatelessWidget {
       case SqlRunKind.success:
         final q = result.query;
         if (q != null) {
-          return SizedBox(
-            height: 320,
-            child: ResultTable(columns: q.columnNames, rows: q.rows, elapsedMs: q.elapsedMs),
+          final table = ResultTable(
+            columns: q.columnNames,
+            rows: q.rows,
+            elapsedMs: q.elapsedMs,
           );
+          return fill
+              ? table
+              : SizedBox(height: 320, child: table);
         }
         return Container(
           margin: const EdgeInsets.all(ShadTokens.space4),

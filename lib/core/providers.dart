@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'models/connection.dart';
-import 'models/metadata_node.dart';
 import 'models/query_result.dart';
 import 'network/iotdb_client.dart';
 import 'storage/app_settings_store.dart';
@@ -38,10 +37,9 @@ class SidebarWidthNotifier extends AsyncNotifier<double> {
 }
 
 /// 主题模式（浅色 / 深色 / 跟随系统，持久化）
-final themeModeProvider =
-    AsyncNotifierProvider<ThemeModeNotifier, ThemeMode>(
-      ThemeModeNotifier.new,
-    );
+final themeModeProvider = AsyncNotifierProvider<ThemeModeNotifier, ThemeMode>(
+  ThemeModeNotifier.new,
+);
 
 class ThemeModeNotifier extends AsyncNotifier<ThemeMode> {
   AppSettingsStore get _store => ref.read(appSettingsStoreProvider);
@@ -118,11 +116,14 @@ class ConnectionStatusNotifier extends Notifier<Map<String, ConnectionStatus>> {
   @override
   Map<String, ConnectionStatus> build() => const {};
 
-  void markSuccess(String id) => state = {...state, id: ConnectionStatus.success};
+  void markSuccess(String id) =>
+      state = {...state, id: ConnectionStatus.success};
 
-  void markFailure(String id) => state = {...state, id: ConnectionStatus.failure};
+  void markFailure(String id) =>
+      state = {...state, id: ConnectionStatus.failure};
 
-  void disconnect(String id) => state = {...state, id: ConnectionStatus.unknown};
+  void disconnect(String id) =>
+      state = {...state, id: ConnectionStatus.unknown};
 }
 
 /// 当前连接的 REST 客户端（随 activeConnection 变化重建）
@@ -151,20 +152,35 @@ class DatabaseListNotifier extends AsyncNotifier<QueryResult> {
 /// 每个连接独立的数据库列表（与 activeConnection 解耦，侧栏可多连接同时展开）
 final connectionDatabaseListProvider =
     FutureProvider.family<QueryResult, Connection>((ref, conn) {
-  return IotdbClient(conn).query('SHOW DATABASES DETAILS');
-});
+      return IotdbClient(conn).query('SHOW DATABASES DETAILS');
+    });
 
-/// 主区域当前选中的元数据节点（侧栏 / 数据库管理页共享）
-final metadataSelectionProvider =
-    NotifierProvider<MetadataSelectionNotifier, MetaNode?>(
-      MetadataSelectionNotifier.new,
+/// 主区域当前选中的数据库名（侧栏 / 表管理页共享）
+final databaseSelectionProvider =
+    NotifierProvider<DatabaseSelectionNotifier, String?>(
+      DatabaseSelectionNotifier.new,
     );
 
-class MetadataSelectionNotifier extends Notifier<MetaNode?> {
+class DatabaseSelectionNotifier extends Notifier<String?> {
   @override
-  MetaNode? build() => null;
+  String? build() => null;
 
-  void select(MetaNode? node) => state = node;
+  void select(String? db) => state = db;
+
+  void clear() => state = null;
+}
+
+/// 当前数据库下选中的表名（侧栏 / 表管理页共享）
+final tableSelectionProvider =
+    NotifierProvider<TableSelectionNotifier, String?>(
+      TableSelectionNotifier.new,
+    );
+
+class TableSelectionNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void select(String? table) => state = table;
 
   void clear() => state = null;
 }
@@ -185,9 +201,10 @@ class WorkspaceTabNotifier extends Notifier<int> {
 enum WorkspaceView { dashboard, tabs }
 
 /// 工作区当前视图（打开连接默认展示仪表盘，点击数据库切到 Tab 工作区）
-final workspaceViewProvider = NotifierProvider<WorkspaceViewNotifier, WorkspaceView>(
-  WorkspaceViewNotifier.new,
-);
+final workspaceViewProvider =
+    NotifierProvider<WorkspaceViewNotifier, WorkspaceView>(
+      WorkspaceViewNotifier.new,
+    );
 
 class WorkspaceViewNotifier extends Notifier<WorkspaceView> {
   @override

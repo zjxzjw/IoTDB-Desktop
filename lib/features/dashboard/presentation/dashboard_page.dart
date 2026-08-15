@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
-import '../../../core/models/metadata_node.dart';
 import '../../../core/models/query_result.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/shadcn_tokens.dart';
@@ -15,7 +14,7 @@ class DashboardPage extends ConsumerWidget {
   void _refresh(WidgetRef ref) {
     ref.invalidate(dashboardVersionProvider);
     ref.invalidate(dashboardRegionProvider);
-    ref.invalidate(dashboardTimeseriesCountProvider);
+    ref.invalidate(dashboardTableCountProvider);
     ref.invalidate(dashboardClusterProvider);
     ref.invalidate(dashboardLatencyProvider);
     ref.invalidate(databaseListProvider);
@@ -87,15 +86,11 @@ class DashboardPage extends ConsumerWidget {
                         result: databases,
                         valueOf: (r) => '${r.rows.length}',
                       ),
-                      _StatCard(
+                      _IntStatCard(
                         width: cardWidth,
-                        title: '测点总数',
-                        icon: RemixIcons.line_chart_line,
-                        result: ref.watch(dashboardTimeseriesCountProvider),
-                        valueOf: (r) =>
-                            r.rows.isNotEmpty && r.rows.first.isNotEmpty
-                            ? '${r.rows.first.first}'
-                            : '—',
+                        title: '表总数',
+                        icon: RemixIcons.table_line,
+                        result: ref.watch(dashboardTableCountProvider),
                       ),
                       _StatCard(
                         width: cardWidth,
@@ -186,12 +181,9 @@ class DashboardPage extends ConsumerWidget {
               : _DatabaseTable(
                   result: r,
                   onSelect: (row) {
-                    final node = MetaNode(
-                      row.first.toString(),
-                      MetaNodeType.database,
-                      rowToAttrs(r, row),
-                    );
-                    ref.read(metadataSelectionProvider.notifier).select(node);
+                    final db = row.first.toString();
+                    ref.read(databaseSelectionProvider.notifier).select(db);
+                    ref.read(tableSelectionProvider.notifier).clear();
                     ref.read(workspaceViewProvider.notifier).showTabs();
                     ref.read(workspaceTabProvider.notifier).select(0);
                   },
@@ -265,6 +257,80 @@ class _StatCard extends StatelessWidget {
             ),
             data: (r) => Text(
               valueOf(r),
+              style: const TextStyle(
+                fontSize: ShadTokens.fontPage,
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 数值型统计卡片（独立 loading / error / data）
+class _IntStatCard extends StatelessWidget {
+  final double width;
+  final String title;
+  final IconData icon;
+  final AsyncValue<int> result;
+
+  const _IntStatCard({
+    required this.width,
+    required this.title,
+    required this.icon,
+    required this.result,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
+    return Container(
+      width: width,
+      padding: const EdgeInsets.all(ShadTokens.space4),
+      decoration: BoxDecoration(
+        color: isLight ? ShadTokens.card : ShadTokens.cardDark,
+        border: Border.all(color: ShadTokens.border),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusMedium),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: ShadTokens.primary),
+              const SizedBox(width: ShadTokens.space2),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: ShadTokens.fontBody,
+                    color: ShadTokens.mutedForeground,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: ShadTokens.space3),
+          result.when(
+            loading: () => const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            error: (e, _) => Text(
+              '加载失败',
+              style: const TextStyle(
+                fontSize: ShadTokens.fontAux,
+                color: ShadTokens.destructive,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+            data: (n) => Text(
+              '$n',
               style: const TextStyle(
                 fontSize: ShadTokens.fontPage,
                 fontWeight: FontWeight.w600,
@@ -498,7 +564,9 @@ class _DatabaseTable extends StatelessWidget {
 
   int? _columnIndex(String name) {
     for (var i = 0; i < result.columnNames.length; i++) {
-      if (result.columnNames[i].toLowerCase() == name) return i;
+      final lower = result.columnNames[i].toLowerCase();
+      // 兼容 `TTL(ms)` 这类带单位列名
+      if (lower == name || lower.startsWith('$name(')) return i;
     }
     return null;
   }

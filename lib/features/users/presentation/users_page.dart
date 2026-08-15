@@ -332,7 +332,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
               columnSpacing: ShadTokens.space4,
               columns: const [
                 DataColumn(label: Text('权限')),
-                DataColumn(label: Text('作用路径')),
+                DataColumn(label: Text('作用范围')),
                 DataColumn(label: Text('来源')),
                 DataColumn(label: Text('可再授权')),
                 DataColumn(label: Text('')),

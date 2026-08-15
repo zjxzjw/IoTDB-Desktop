@@ -15,9 +15,13 @@ class QueryResult {
 
   int get columnCount => columnNames.length;
 
-  /// 解析 REST v2 响应（2.0.10 实测格式）：
-  /// { column_names[], values[列主序], timestamps?, data_types? }
-  /// 注：SELECT 类查询返回 `expressions` 而非 `column_names`，需兜底
+  /// 解析 REST 响应。
+  ///
+  /// 两种格式：
+  /// 1. 表模型端点 `/rest/table/v1/query`（本工具当前使用）：
+  ///    { column_names, values(行主序), data_types }，无 timestamps，time 为普通列。
+  /// 2. 树模型端点 `/rest/v2/query`（兼容保留）：
+  ///    { expressions|column_names, values(列主序), timestamps, data_types }。
   factory QueryResult.fromRestJson(Map<String, dynamic> json, int elapsedMs) {
     final columnNames =
         (json['column_names'] as List<dynamic>? ??
@@ -35,24 +39,34 @@ class QueryResult {
         ?.map((e) => e?.toString())
         .toList();
 
-    final rowCount = timestamps != null
-        ? timestamps.length
-        : (values.isNotEmpty ? (values.first as List).length : 0);
-    final names = [...columnNames];
-    if (timestamps != null && !names.contains('Time')) names.insert(0, 'Time');
-
-    final rows = <List<dynamic>>[];
-    for (var i = 0; i < rowCount; i++) {
-      final row = <dynamic>[];
-      if (timestamps != null) row.add(timestamps[i]);
-      for (final col in values) {
-        final colList = col as List<dynamic>;
-        row.add(i < colList.length ? colList[i] : null);
+    // 树模型 v2 风格：values 列主序，timestamps 补为 Time 列
+    if (timestamps != null) {
+      final names = [...columnNames];
+      if (!names.contains('Time')) names.insert(0, 'Time');
+      final rows = <List<dynamic>>[];
+      for (var i = 0; i < timestamps.length; i++) {
+        final row = <dynamic>[timestamps[i]];
+        for (final col in values) {
+          final colList = col as List<dynamic>;
+          row.add(i < colList.length ? colList[i] : null);
+        }
+        rows.add(row);
       }
-      rows.add(row);
+      return QueryResult(
+        columnNames: names,
+        rows: rows,
+        dataTypes: dataTypes ?? const [],
+        elapsedMs: elapsedMs,
+      );
     }
+
+    // 表模型：values 行主序，每行即一个数据行
+    final rows = <List<dynamic>>[
+      for (final v in values)
+        if (v is List) v else <dynamic>[v],
+    ];
     return QueryResult(
-      columnNames: names,
+      columnNames: columnNames,
       rows: rows,
       dataTypes: dataTypes ?? const [],
       elapsedMs: elapsedMs,

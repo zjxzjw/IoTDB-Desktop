@@ -43,9 +43,10 @@ class PrivilegeEntry {
   bool get fromRole => role.isNotEmpty;
 }
 
-/// 2.0.10 实测权限常量：
+/// 2.0.10 权限常量（树表两模型均可用，作用范围语义不同）：
 /// 全局权限仅 SYSTEM/SECURITY（MAINTAIN/USE_UDF 等已废弃，服务器提示改用 SYSTEM），
 /// 且只能挂在 root.**；路径权限 4 个；ALL 仅限 root.**
+/// 表模型下路径权限作用范围为 数据库名 / 库.表，如 db1、db1.table1。
 abstract final class Privileges {
   static const global = ['SYSTEM', 'SECURITY'];
 

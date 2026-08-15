@@ -342,7 +342,7 @@ class _GrantPrivilegeSheet extends ConsumerStatefulWidget {
 
 class _GrantPrivilegeSheetState extends ConsumerState<_GrantPrivilegeSheet> {
   final _formKey = GlobalKey<FormState>();
-  final _scope = TextEditingController(text: Privileges.rootScope);
+  final _scope = TextEditingController();
   final Set<String> _selected = {};
   bool _grantOption = false;
   bool _submitting = false;
@@ -430,14 +430,14 @@ class _GrantPrivilegeSheetState extends ConsumerState<_GrantPrivilegeSheet> {
                 controller: _scope,
                 enabled: !_hasGlobal,
                 decoration: InputDecoration(
-                  labelText: '作用路径 *',
-                  hintText: Privileges.rootScope,
+                  labelText: '作用范围 *',
+                  hintText: '如：db1 或 db1.table1',
                   helperText: _hasGlobal
-                      ? '包含全局权限（SYSTEM/SECURITY/ALL）时，路径固定为 ${Privileges.rootScope}'
-                      : '路径权限示例：root.**、root.test.**、root.test.device.s1',
+                      ? '包含全局权限（SYSTEM/SECURITY/ALL）时，作用范围固定为 ${Privileges.rootScope}'
+                      : '表模型下填写数据库名或 库.表，如：db1、db1.table1',
                   helperMaxLines: 2,
                 ),
-                validator: (v) => (v == null || v.trim().isEmpty) ? '请输入作用路径' : null,
+                validator: (v) => (v == null || v.trim().isEmpty) ? '请输入作用范围' : null,
               ),
               if (widget.target.kind == PrivilegeKind.user) ...[
                 const SizedBox(height: ShadTokens.space2),

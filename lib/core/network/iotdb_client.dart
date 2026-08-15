@@ -53,24 +53,24 @@ class IotdbClient {
     return sw.elapsedMilliseconds;
   }
 
-  /// 数据/元数据查询
+  /// 数据/元数据查询（表模型 REST 端点）
   Future<QueryResult> query(String sql, {int? rowLimit}) async {
     final sw = Stopwatch()..start();
     final payload = <String, dynamic>{'sql': sql};
     final limit = rowLimit ?? conn.rowLimit;
     if (limit != null && limit > 0) payload['row_limit'] = limit;
     final response = await _guard(
-      () => dio.post('/rest/v2/query', data: payload),
+      () => dio.post('/rest/table/v1/query', data: payload),
     );
     final json = response.data as Map<String, dynamic>;
     _throwIfServerError(json);
     return QueryResult.fromRestJson(json, sw.elapsedMilliseconds);
   }
 
-  /// 非查询语句（DDL/DML/权限）
+  /// 非查询语句（DDL/DML/权限，表模型 REST 端点）
   Future<Map<String, dynamic>> nonQuery(String sql) async {
     final response = await _guard(
-      () => dio.post('/rest/v2/nonQuery', data: {'sql': sql}),
+      () => dio.post('/rest/table/v1/nonQuery', data: {'sql': sql}),
     );
     final json = (response.data as Map<String, dynamic>?) ?? {};
     _throwIfServerError(json);

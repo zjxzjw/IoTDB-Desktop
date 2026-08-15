@@ -1,10 +1,15 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/theme/shadcn_tokens.dart';
+import '../core/theme/shadcn_tokens.dart';
 import 'empty_state.dart';
 
-/// 通用结果表格：分页 + 横向滚动 + Time 列格式化 + 底部统计
+/// 通用结果表格：铺满宽度 + 固定表头 + 分页 + Time 列格式化 + 底部统计
+///
+/// 手写实现：表头行固定在顶部（不随纵向滚动），正文独立纵向滚动；
+/// 列宽 = max(最小宽, 视口宽/列数)，列少时铺满、列多时横向滚动（表头与正文同宽对齐）。
 class ResultTable extends StatefulWidget {
   final List<String> columns;
   final List<List<dynamic>> rows;
@@ -25,6 +30,8 @@ class ResultTable extends StatefulWidget {
 
 class _ResultTableState extends State<ResultTable> {
   static final DateFormat _timeFmt = DateFormat('yyyy-MM-dd HH:mm:ss.SSS');
+  static const double _minColWidth = 120;
+
   int _page = 0;
 
   int get _pageCount => ((widget.rows.length - 1) ~/ widget.pageSize) + 1;
@@ -37,7 +44,9 @@ class _ResultTableState extends State<ResultTable> {
         return _timeFmt.format(DateTime.fromMillisecondsSinceEpoch(value));
       } catch (_) {}
     }
-    if (value is double && value == value.roundToDouble()) return value.toInt().toString();
+    if (value is double && value == value.roundToDouble()) {
+      return value.toInt().toString();
+    }
     return value.toString();
   }
 
@@ -45,7 +54,10 @@ class _ResultTableState extends State<ResultTable> {
   Widget build(BuildContext context) {
     final rows = widget.rows;
     if (rows.isEmpty) {
-      return const EmptyState(title: '查询结果为空', icon: Icons.table_rows_outlined);
+      return const EmptyState(
+        title: '查询结果为空',
+        icon: Icons.table_rows_outlined,
+      );
     }
     final start = _page * widget.pageSize;
     final pageRows = rows.skip(start).take(widget.pageSize).toList();
@@ -53,37 +65,37 @@ class _ResultTableState extends State<ResultTable> {
     return Column(
       children: [
         Expanded(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: SingleChildScrollView(
-              child: DataTable(
-                headingRowColor: WidgetStatePropertyAll(ShadTokens.muted),
-                horizontalMargin: ShadTokens.space4,
-                columnSpacing: ShadTokens.space4,
-                columns: [
-                  for (final name in widget.columns) DataColumn(label: Text(name)),
-                ],
-                rows: [
-                  for (final row in pageRows)
-                    DataRow(
-                      cells: [
-                        for (var i = 0; i < widget.columns.length; i++)
-                          DataCell(
-                            Text(
-                              i < row.length ? _format(i, row[i]) : '',
-                              style: TextStyle(
-                                fontSize: ShadTokens.fontBody,
-                                color: i < row.length && row[i] == null ? ShadTokens.placeholder : ShadTokens.foreground,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final viewport = constraints.maxWidth;
+              final colCount = widget.columns.length;
+              final colWidth = math.max(
+                _minColWidth,
+                colCount == 0 ? _minColWidth : viewport / colCount,
+              );
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minWidth: viewport),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(colWidth),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              for (final row in pageRows)
+                                _buildRow(row, colWidth),
+                            ],
                           ),
-                      ],
-                    ),
-                ],
-              ),
-            ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ),
         _buildFooter(),
@@ -91,10 +103,75 @@ class _ResultTableState extends State<ResultTable> {
     );
   }
 
+  Widget _buildHeader(double colWidth) {
+    return Container(
+      color: ShadTokens.muted,
+      child: Row(
+        children: [
+          for (final name in widget.columns)
+            SizedBox(
+              width: colWidth,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ShadTokens.space2,
+                  vertical: 8,
+                ),
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: ShadTokens.fontBody,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRow(List<dynamic> row, double colWidth) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: ShadTokens.divider)),
+      ),
+      child: Row(
+        children: [
+          for (var i = 0; i < widget.columns.length; i++)
+            SizedBox(
+              width: colWidth,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ShadTokens.space2,
+                  vertical: 6,
+                ),
+                child: Text(
+                  i < row.length ? _format(i, row[i]) : '',
+                  style: TextStyle(
+                    fontSize: ShadTokens.fontBody,
+                    color: i < row.length && row[i] == null
+                        ? ShadTokens.placeholder
+                        : ShadTokens.foreground,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFooter() {
     final multiplePages = _pageCount > 1;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: ShadTokens.space4, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: ShadTokens.space4,
+        vertical: 6,
+      ),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: ShadTokens.divider)),
         color: ShadTokens.card,
@@ -102,8 +179,12 @@ class _ResultTableState extends State<ResultTable> {
       child: Row(
         children: [
           Text(
-            '共 ${widget.rows.length} 行${widget.elapsedMs != null ? ' · ${widget.elapsedMs}ms' : ''}',
-            style: const TextStyle(fontSize: ShadTokens.fontAux, color: ShadTokens.mutedForeground),
+            '共 ${widget.rows.length} 行'
+            '${widget.elapsedMs != null ? ' · ${widget.elapsedMs}ms' : ''}',
+            style: const TextStyle(
+              fontSize: ShadTokens.fontAux,
+              color: ShadTokens.mutedForeground,
+            ),
           ),
           const Spacer(),
           if (multiplePages) ...[
@@ -114,12 +195,17 @@ class _ResultTableState extends State<ResultTable> {
             ),
             Text(
               '${_page + 1} / $_pageCount',
-              style: const TextStyle(fontSize: ShadTokens.fontAux, color: ShadTokens.mutedForeground),
+              style: const TextStyle(
+                fontSize: ShadTokens.fontAux,
+                color: ShadTokens.mutedForeground,
+              ),
             ),
             IconButton(
               visualDensity: VisualDensity.compact,
               icon: const Icon(Icons.chevron_right, size: 18),
-              onPressed: _page < _pageCount - 1 ? () => setState(() => _page++) : null,
+              onPressed: _page < _pageCount - 1
+                  ? () => setState(() => _page++)
+                  : null,
             ),
           ],
         ],

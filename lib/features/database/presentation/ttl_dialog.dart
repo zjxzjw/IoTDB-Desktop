@@ -4,29 +4,42 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/shadcn_tokens.dart';
 import '../../../core/utils/sql_builder.dart';
+import '../data/database_providers.dart';
 
-/// TTL 设置对话框：自定义毫秒 / INF / 取消 TTL
+/// TTL 目标类型：数据库 / 表
+enum TtlTarget { database, table }
+
+/// TTL 设置对话框：自定义毫秒 / INF（永久） / 恢复数据库默认（仅表）
 Future<void> showTtlDialog(
   BuildContext context,
   WidgetRef ref, {
-  required String database,
+  required TtlTarget target,
+  required String db,
+  String? table,
 }) {
   return showDialog(
     context: context,
-    builder: (context) => TtlDialog(database: database),
+    builder: (context) => TtlDialog(target: target, db: db, table: table),
   );
 }
 
 class TtlDialog extends ConsumerStatefulWidget {
-  final String database;
+  final TtlTarget target;
+  final String db;
+  final String? table;
 
-  const TtlDialog({super.key, required this.database});
+  const TtlDialog({
+    super.key,
+    required this.target,
+    required this.db,
+    this.table,
+  });
 
   @override
   ConsumerState<TtlDialog> createState() => _TtlDialogState();
 }
 
-enum _TtlMode { custom, infinite, unset }
+enum _TtlMode { custom, infinite, defaultTtl }
 
 class _TtlDialogState extends ConsumerState<TtlDialog> {
   _TtlMode _mode = _TtlMode.custom;
@@ -38,6 +51,11 @@ class _TtlDialogState extends ConsumerState<TtlDialog> {
     _ttl.dispose();
     super.dispose();
   }
+
+  String get _title => switch (widget.target) {
+    TtlTarget.database => '设置数据库 TTL · ${widget.db}',
+    TtlTarget.table => '设置表 TTL · ${widget.db}.${widget.table}',
+  };
 
   Future<void> _submit() async {
     if (_mode == _TtlMode.custom) {
@@ -51,13 +69,28 @@ class _TtlDialogState extends ConsumerState<TtlDialog> {
     }
     setState(() => _submitting = true);
     try {
-      final sql = switch (_mode) {
-        _TtlMode.custom => SqlBuilder.setTtl(
-          widget.database,
-          ttlMs: int.parse(_ttl.text.trim()),
-        ),
-        _TtlMode.infinite => SqlBuilder.setTtl(widget.database),
-        _TtlMode.unset => SqlBuilder.unsetTtl(widget.database),
+      final sql = switch (widget.target) {
+        TtlTarget.database => switch (_mode) {
+          _TtlMode.custom => SqlBuilder.alterDatabaseTtl(
+            widget.db,
+            ttlMs: int.parse(_ttl.text.trim()),
+          ),
+          _TtlMode.infinite => SqlBuilder.alterDatabaseTtl(widget.db),
+          _TtlMode.defaultTtl => SqlBuilder.alterDatabaseTtl(widget.db),
+        },
+        TtlTarget.table => switch (_mode) {
+          _TtlMode.custom => SqlBuilder.alterTableTtl(
+            widget.db,
+            widget.table!,
+            ttlMs: int.parse(_ttl.text.trim()),
+          ),
+          _TtlMode.infinite => SqlBuilder.alterTableTtl(widget.db, widget.table!),
+          _TtlMode.defaultTtl => SqlBuilder.alterTableTtl(
+            widget.db,
+            widget.table!,
+            useDefault: true,
+          ),
+        },
       };
       await ref.read(iotdbClientProvider).nonQuery(sql);
       if (!mounted) return;
@@ -65,7 +98,7 @@ class _TtlDialogState extends ConsumerState<TtlDialog> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('TTL 已更新')));
-      ref.invalidate(databaseListProvider);
+      _invalidate();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -76,10 +109,20 @@ class _TtlDialogState extends ConsumerState<TtlDialog> {
     }
   }
 
+  void _invalidate() {
+    ref.invalidate(databaseListProvider);
+    ref.invalidate(tableListProvider(widget.db));
+    final conn = ref.read(activeConnectionProvider);
+    if (conn != null) {
+      ref.invalidate(connectionTableListProvider(TableScope(conn, widget.db)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isTable = widget.target == TtlTarget.table;
     return AlertDialog(
-      title: Text('设置 TTL · ${widget.database}'),
+      title: Text(_title),
       content: SizedBox(
         width: 400,
         child: RadioGroup<_TtlMode>(
@@ -120,14 +163,15 @@ class _TtlDialogState extends ConsumerState<TtlDialog> {
                 ),
                 value: _TtlMode.infinite,
               ),
-              const RadioListTile<_TtlMode>(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  '取消 TTL（UNSET）',
-                  style: TextStyle(fontSize: ShadTokens.fontBody),
+              if (isTable)
+                const RadioListTile<_TtlMode>(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    '恢复数据库默认 TTL',
+                    style: TextStyle(fontSize: ShadTokens.fontBody),
+                  ),
+                  value: _TtlMode.defaultTtl,
                 ),
-                value: _TtlMode.unset,
-              ),
             ],
           ),
         ),

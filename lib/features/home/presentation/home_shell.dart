@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../../../core/models/connection.dart';
-import '../../../core/models/metadata_node.dart';
 import '../../../core/network/iotdb_client.dart';
 import '../../../core/providers.dart';
 import '../../../core/storage/app_settings_store.dart';
@@ -11,10 +10,10 @@ import '../../../core/theme/shadcn_tokens.dart';
 import '../../../shared/confirm_dialog.dart';
 import '../../connections/presentation/connection_form_sheet.dart';
 import '../../connections/presentation/connection_sidebar.dart';
-import '../../data/presentation/data_browse_page.dart';
 import '../../dashboard/presentation/dashboard_page.dart';
+import '../../data/presentation/data_browse_page.dart';
 import '../../database/presentation/create_database_form.dart';
-import '../../database/presentation/database_page.dart';
+import '../../database/presentation/table_page.dart';
 import '../../sql/presentation/sql_workbench_page.dart';
 import '../../users/presentation/users_page.dart';
 
@@ -64,9 +63,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   Future<void> _openWorkspace(WidgetRef ref, Connection conn) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final ms = await IotdbClient(conn).ping();
       ref.read(connectionStatusProvider.notifier).markSuccess(conn.id);
-      ref.read(metadataSelectionProvider.notifier).clear();
+      ref.read(databaseSelectionProvider.notifier).clear();
+      ref.read(tableSelectionProvider.notifier).clear();
       ref.read(activeConnectionProvider.notifier).set(conn);
       ref.read(workspaceViewProvider.notifier).showDashboard();
     } catch (e) {
@@ -91,36 +90,36 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     connections: [],
                     loading: true,
                     onOpen: _noop,
-                    onDashboard: _noop,
                     onTest: _noop,
                     onEdit: _noop,
                     onDelete: _noop,
                     onDisconnect: _noop,
-                    onSelectDatabase: _noopSelect,
+                    onSelectDatabase: _noopSelectDb,
+                    onSelectTable: _noopSelectTable,
                   ),
                   error: (e, _) => const ConnectionSidebar(
                     connections: [],
                     loading: false,
                     onOpen: _noop,
-                    onDashboard: _noop,
                     onTest: _noop,
                     onEdit: _noop,
                     onDelete: _noop,
                     onDisconnect: _noop,
-                    onSelectDatabase: _noopSelect,
+                    onSelectDatabase: _noopSelectDb,
+                    onSelectTable: _noopSelectTable,
                   ),
                   data: (list) => ConnectionSidebar(
                     connections: list,
                     loading: false,
                     onOpen: (c) => _openWorkspace(ref, c),
-                    onDashboard: (c) => _openDashboard(ref, c),
                     onTest: (c) => _testConnection(context, ref, c),
                     onEdit: (c) =>
                         showConnectionFormDialog(context, ref, editing: c),
                     onDelete: (c) => _deleteConnection(context, ref, c),
                     onDisconnect: (c) => _disconnectConnection(ref, c),
-                    onSelectDatabase: (c, node) =>
-                        _selectDatabase(ref, c, node),
+                    onSelectDatabase: (c, db) => _selectDatabase(ref, c, db),
+                    onSelectTable: (c, db, table) =>
+                        _selectTable(ref, c, db, table),
                   ),
                 ),
           ),
@@ -141,22 +140,43 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   static void _noop(Connection c) {}
 
-  static void _noopSelect(Connection c, MetaNode node) {}
+  static void _noopSelectDb(Connection c, String db) {}
 
-  /// 点击侧栏数据库：激活对应连接，切到「数据库管理」并选中该数据库
+  static void _noopSelectTable(Connection c, String db, String table) {}
+
+  /// 点击侧栏数据库：激活对应连接，切到「表管理」并选中该数据库
   Future<void> _selectDatabase(
     WidgetRef ref,
     Connection conn,
-    MetaNode node,
+    String db,
   ) async {
     final active = ref.read(activeConnectionProvider);
     if (active?.id != conn.id) {
       await _openWorkspace(ref, conn);
       if (ref.read(activeConnectionProvider)?.id != conn.id) return;
     }
+    ref.read(databaseSelectionProvider.notifier).select(db);
+    ref.read(tableSelectionProvider.notifier).clear();
     ref.read(workspaceViewProvider.notifier).showTabs();
     ref.read(workspaceTabProvider.notifier).select(0);
-    ref.read(metadataSelectionProvider.notifier).select(node);
+  }
+
+  /// 点击侧栏表：激活对应连接，切到「表管理」并选中该表
+  Future<void> _selectTable(
+    WidgetRef ref,
+    Connection conn,
+    String db,
+    String table,
+  ) async {
+    final active = ref.read(activeConnectionProvider);
+    if (active?.id != conn.id) {
+      await _openWorkspace(ref, conn);
+      if (ref.read(activeConnectionProvider)?.id != conn.id) return;
+    }
+    ref.read(databaseSelectionProvider.notifier).select(db);
+    ref.read(tableSelectionProvider.notifier).select(table);
+    ref.read(workspaceViewProvider.notifier).showTabs();
+    ref.read(workspaceTabProvider.notifier).select(0);
   }
 
   /// 点击侧栏仪表盘：未打开该连接时自动连接，然后切到「仪表盘」独立页面
@@ -173,15 +193,13 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     BuildContext context,
     WidgetRef ref,
     Connection conn,
-  ) =>
-      _testConnectionAction(context, ref, conn);
+  ) => _testConnectionAction(context, ref, conn);
 
   Future<void> _deleteConnection(
     BuildContext context,
     WidgetRef ref,
     Connection conn,
-  ) =>
-      _deleteConnectionAction(context, ref, conn);
+  ) => _deleteConnectionAction(context, ref, conn);
 
   void _disconnectConnection(WidgetRef ref, Connection conn) =>
       _disconnectConnectionAction(context, ref, conn);
@@ -233,7 +251,8 @@ Future<void> _deleteConnectionAction(
   await ref.read(connectionStoreProvider.notifier).remove(conn.id);
   if (ref.read(activeConnectionProvider)?.id == conn.id) {
     ref.read(activeConnectionProvider.notifier).clear();
-    ref.read(metadataSelectionProvider.notifier).clear();
+    ref.read(databaseSelectionProvider.notifier).clear();
+    ref.read(tableSelectionProvider.notifier).clear();
   }
   ref.read(connectionStatusProvider.notifier).disconnect(conn.id);
   if (context.mounted) {
@@ -252,7 +271,8 @@ void _disconnectConnectionAction(
   final active = ref.read(activeConnectionProvider);
   if (active?.id == conn.id) {
     ref.read(activeConnectionProvider.notifier).clear();
-    ref.read(metadataSelectionProvider.notifier).clear();
+    ref.read(databaseSelectionProvider.notifier).clear();
+    ref.read(tableSelectionProvider.notifier).clear();
   }
   ref.read(connectionStatusProvider.notifier).disconnect(conn.id);
 }
@@ -332,15 +352,16 @@ class _SidebarResizeHandleState extends State<_SidebarResizeHandle> {
                       : ShadTokens.border,
                 ),
               ),
-              if (_hovered)
-                Container(
-                  width: 4,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+              Container(
+                width: 4,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: _hovered
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(2),
                 ),
+              ),
             ],
           ),
         ),
@@ -366,7 +387,11 @@ class _WorkspaceResizeHandle extends StatelessWidget {
         child: SizedBox(
           height: 6,
           child: Center(
-            child: Container(width: double.infinity, height: 1, color: ShadTokens.border),
+            child: Container(
+              width: double.infinity,
+              height: 1,
+              color: ShadTokens.border,
+            ),
           ),
         ),
       ),
@@ -396,11 +421,9 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
 
   void _expand(double total) {
     if (_sqlHeight <= 0) {
-      final maxSql = (total -
-              _tabBarHeight -
-              _resizeHandleHeight -
-              _minContentHeight)
-          .clamp(_minSqlHeight, double.infinity);
+      final maxSql =
+          (total - _tabBarHeight - _resizeHandleHeight - _minContentHeight)
+              .clamp(_minSqlHeight, double.infinity);
       _sqlHeight = (total * 0.45).clamp(_minSqlHeight, maxSql);
     }
     setState(() => _tabsExpanded = true);
@@ -416,11 +439,9 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
       return;
     }
     setState(() {
-      final maxSql = (total -
-              _tabBarHeight -
-              _resizeHandleHeight -
-              _minContentHeight)
-          .clamp(_minSqlHeight, double.infinity);
+      final maxSql =
+          (total - _tabBarHeight - _resizeHandleHeight - _minContentHeight)
+              .clamp(_minSqlHeight, double.infinity);
       _sqlHeight = (_sqlHeight + dy).clamp(_minSqlHeight, maxSql);
     });
   }
@@ -431,7 +452,10 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
     if (conn == null) {
       return const Scaffold(
         body: Center(
-          child: Text('未打开连接', style: TextStyle(color: ShadTokens.mutedForeground)),
+          child: Text(
+            '未打开连接',
+            style: TextStyle(color: ShadTokens.mutedForeground),
+          ),
         ),
       );
     }
@@ -490,8 +514,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
             IconButton(
               visualDensity: VisualDensity.compact,
               tooltip: '断开连接',
-              onPressed: () =>
-                  _disconnectConnectionAction(context, ref, conn),
+              onPressed: () => _disconnectConnectionAction(context, ref, conn),
               icon: const Icon(
                 RemixIcons.link_unlink,
                 size: 18,
@@ -507,17 +530,20 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
               ),
               onSelected: (action) => switch (action) {
                 _WorkspaceConnAction.test => _testConnectionAction(
-                    context,
-                    ref,
-                    conn,
-                  ),
-                _WorkspaceConnAction.edit =>
-                  showConnectionFormDialog(context, ref, editing: conn),
+                  context,
+                  ref,
+                  conn,
+                ),
+                _WorkspaceConnAction.edit => showConnectionFormDialog(
+                  context,
+                  ref,
+                  editing: conn,
+                ),
                 _WorkspaceConnAction.delete => _deleteConnectionAction(
-                    context,
-                    ref,
-                    conn,
-                  ),
+                  context,
+                  ref,
+                  conn,
+                ),
               },
               itemBuilder: (context) => const [
                 PopupMenuItem(
@@ -542,9 +568,8 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                 child: IconButton(
                   visualDensity: VisualDensity.compact,
                   tooltip: '仪表盘',
-                  onPressed: () => ref
-                      .read(workspaceViewProvider.notifier)
-                      .showDashboard(),
+                  onPressed: () =>
+                      ref.read(workspaceViewProvider.notifier).showDashboard(),
                   icon: const Icon(
                     RemixIcons.speed_up_line,
                     size: 18,
@@ -560,14 +585,19 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                 builder: (context, constraints) {
                   final total = constraints.maxHeight;
                   final fixed = _tabBarHeight + _resizeHandleHeight;
-                  final maxSql = (total - fixed - _minContentHeight)
-                      .clamp(_minSqlHeight, double.infinity);
+                  final maxSql = (total - fixed - _minContentHeight).clamp(
+                    _minSqlHeight,
+                    double.infinity,
+                  );
                   final sqlHeight = _tabsExpanded
                       ? _sqlHeight.clamp(_minSqlHeight, maxSql)
                       : total - fixed;
                   return Column(
                     children: [
-                      SizedBox(height: sqlHeight, child: const SqlWorkbenchPage()),
+                      SizedBox(
+                        height: sqlHeight,
+                        child: const SqlWorkbenchPage(),
+                      ),
                       _WorkspaceResizeHandle(
                         onDrag: (dy) => _onResizeDrag(dy, total),
                       ),
@@ -585,7 +615,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                                         .select(i);
                                   },
                                   tabs: const [
-                                    Tab(text: '数据库管理'),
+                                    Tab(text: '表管理'),
                                     Tab(text: '用户与权限'),
                                     Tab(text: '数据浏览'),
                                   ],
@@ -617,7 +647,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                           child: IndexedStack(
                             index: tab,
                             children: const [
-                              DatabasePage(),
+                              TablePage(),
                               UsersPage(),
                               DataBrowsePage(),
                             ],

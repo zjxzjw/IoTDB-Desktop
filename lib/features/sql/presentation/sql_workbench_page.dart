@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:code_text_field/code_text_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:re_editor/re_editor.dart';
 import 'package:remixicon/remixicon.dart';
 
-import '../../../core/models/metadata_node.dart';
 import '../../../core/network/statement_router.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/shadcn_tokens.dart';
-import '../../../core/utils/sql_highlighter.dart';
-import '../../database/data/database_providers.dart';
 import '../data/sql_history_provider.dart';
 import 'result_panel.dart';
 import 'sql_editor.dart';
@@ -25,15 +22,12 @@ class SqlWorkbenchPage extends ConsumerStatefulWidget {
 
 class _SqlTab {
   final String title;
-  final CodeController controller;
+  final CodeLineEditingController controller;
   final FocusNode focusNode;
   List<SqlRunResult> results = [];
 
   _SqlTab(this.title)
-      : controller = CodeController(
-          patternMap: SqlHighlighter.patternMap,
-          stringMap: SqlHighlighter.stringMap,
-        ),
+      : controller = CodeLineEditingController(),
         focusNode = FocusNode();
 
   void dispose() {
@@ -218,42 +212,27 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     );
   }
 
-  /// 从选中的元数据节点推导当前数据库（数据库节点直接取路径，设备/测点取路径前两段）
-  String? _databaseOf(MetaNode? node) {
-    if (node == null) return null;
-    if (node.type == MetaNodeType.database) return node.path;
-    final parts = node.path.split('.');
-    return parts.length >= 2 ? parts.sublist(0, 2).join('.') : null;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final paths = ref.watch(timeseriesAutoCompleteProvider).value;
-    final timeseriesPaths = [
-      if (paths != null)
-        for (final row in paths.rows)
-          if (row.isNotEmpty) row.first.toString(),
-    ];
+    final currentDb = ref.watch(databaseSelectionProvider);
     final current = _current;
-    final currentDb = _databaseOf(ref.watch(metadataSelectionProvider));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildTabBar(currentDb),
         Expanded(
-          flex: 5,
-          child: current == null
-              ? const SizedBox.shrink()
-              : SqlEditor(
-                  controller: current.controller,
-                  focusNode: current.focusNode,
-                  onRun: _run,
-                  timeseriesPaths: timeseriesPaths,
-                ),
-        ),
-        Expanded(
-          flex: 3,
-          child: current == null ? const SizedBox.shrink() : ResultPanel(results: current.results),
+          child: _VerticalSplitPane(
+            top: current == null
+                ? const SizedBox.shrink()
+                : SqlEditor(
+                    controller: current.controller,
+                    focusNode: current.focusNode,
+                    onRun: _run,
+                  ),
+            bottom: current == null
+                ? const SizedBox.shrink()
+                : ResultPanel(results: current.results),
+          ),
         ),
       ],
     );
@@ -262,7 +241,10 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
   Widget _buildTabBar(String? currentDb) {
     return Container(
       height: 40,
-      color: ShadTokens.card,
+      decoration: const BoxDecoration(
+        color: ShadTokens.card,
+        border: Border(bottom: BorderSide(color: ShadTokens.divider)),
+      ),
       child: Row(
         children: [
           Container(
@@ -360,6 +342,93 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
                 icon: const Icon(RemixIcons.close_line),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 垂直分割面板：上下两块区域，中间是可拖拽高度的分割线指示器（仅会话内记忆比例）
+class _VerticalSplitPane extends StatefulWidget {
+  final Widget top;
+  final Widget bottom;
+
+  const _VerticalSplitPane({
+    required this.top,
+    required this.bottom,
+  });
+
+  @override
+  State<_VerticalSplitPane> createState() => _VerticalSplitPaneState();
+}
+
+class _VerticalSplitPaneState extends State<_VerticalSplitPane> {
+  static const double _initialFraction = 0.625;
+  static const double _minFraction = 0.15;
+  static const double _maxFraction = 0.85;
+
+  late double _fraction = _initialFraction;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalHeight = constraints.maxHeight;
+        final topHeight = (totalHeight * _fraction).clamp(0.0, totalHeight);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: topHeight,
+              child: widget.top,
+            ),
+            _buildHandle(totalHeight),
+            Expanded(
+              child: widget.bottom,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildHandle(double totalHeight) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeUpDown,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onVerticalDragUpdate: (details) {
+          if (totalHeight <= 0) return;
+          setState(() {
+            _fraction = ((_fraction * totalHeight + details.delta.dy) / totalHeight)
+                .clamp(_minFraction, _maxFraction);
+          });
+        },
+        onDoubleTap: () => setState(() => _fraction = _initialFraction),
+        child: SizedBox(
+          height: 8,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  height: 1,
+                  color: ShadTokens.border,
+                ),
+              ),
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: ShadTokens.mutedForeground,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

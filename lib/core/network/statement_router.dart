@@ -1,4 +1,4 @@
-/// SQL 语句路由：判定走 /rest/v2/query 还是 /rest/v2/nonQuery
+/// SQL 语句路由：判定走 /rest/table/v1/query 还是 /rest/table/v1/nonQuery
 ///
 /// 启发式（2.0.10 实测）：数据/元数据查询关键字 → query，其余（DDL/DML/权限）→ nonQuery
 class StatementRouter {
