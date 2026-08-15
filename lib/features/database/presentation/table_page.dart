@@ -146,32 +146,6 @@ class _TableListPane extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            ShadTokens.space4,
-            ShadTokens.space3,
-            ShadTokens.space4,
-            ShadTokens.space2,
-          ),
-          child: Row(
-            children: [
-              const Icon(
-                RemixIcons.database_2_line,
-                size: 14,
-                color: ShadTokens.primary,
-              ),
-              const SizedBox(width: ShadTokens.space2),
-              const Text(
-                '数据库中的表',
-                style: TextStyle(
-                  fontSize: ShadTokens.fontBody,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
         Expanded(
           child: result.when(
             loading: () => const Center(

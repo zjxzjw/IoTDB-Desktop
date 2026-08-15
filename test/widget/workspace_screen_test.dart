@@ -56,8 +56,8 @@ void main() {
     ref(workspaceViewProvider.notifier).showTabs();
     await tester.pumpAndSettle();
 
-    // 初始收起：底部内容区不可见
-    expect(find.byType(ResultPanel), findsNothing);
+    // 进入 tabs 视图默认展开：底部内容区可见
+    expect(find.byType(ResultPanel), findsOneWidget);
 
     // 写入 SQL 并执行（Cmd/Ctrl + Enter）
     final editor = tester.widget<CodeEditor>(find.byType(CodeEditor));

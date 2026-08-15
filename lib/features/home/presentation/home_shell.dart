@@ -326,7 +326,7 @@ class _SidebarResizeHandleState extends State<_SidebarResizeHandle> {
                 decoration: BoxDecoration(
                   color: _hovered
                       ? Theme.of(context).colorScheme.primary
-                      : Colors.transparent,
+                      : ShadTokens.mutedForeground,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -399,6 +399,9 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
   /// 默认收起：下方仅显示 Tab 切换条，不显示内容区
   bool _tabsExpanded = false;
 
+  /// 从 dashboard 进入 tabs 视图时待展开标记（下一帧消费）
+  bool _expandPending = false;
+
   /// SQL 区像素高度（首次展开按总量 × 0.45 初始化，之后记住用户拖拽结果）
   double _sqlHeight = 0;
 
@@ -417,6 +420,11 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
     ref.listenManual(workspaceTabProvider, (prev, next) {
       if (mounted && next != _tabController.index) {
         _tabController.index = next;
+      }
+    });
+    ref.listenManual(workspaceViewProvider, (prev, next) {
+      if (mounted && next == WorkspaceView.tabs && prev != WorkspaceView.tabs) {
+        _expandPending = true;
       }
     });
   }
@@ -599,6 +607,12 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
             ? LayoutBuilder(
                 builder: (context, constraints) {
                   final total = constraints.maxHeight;
+                  if (_expandPending) {
+                    _expandPending = false;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted && !_tabsExpanded) _expand(total);
+                    });
+                  }
                   final fixed = _tabBarHeight + _resizeHandleHeight;
                   final maxSql = (total - fixed - _minContentHeight).clamp(
                     _minSqlHeight,
