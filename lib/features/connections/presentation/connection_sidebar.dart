@@ -219,6 +219,7 @@ class _ConnectionNode extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isLight = Theme.of(context).brightness == Brightness.light;
+    final connected = active || status == ConnectionStatus.success;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -274,17 +275,18 @@ class _ConnectionNode extends StatelessWidget {
                       ],
                     ),
                   ),
-                  IconButton(
-                    visualDensity: VisualDensity.compact,
-                    tooltip: '刷新',
-                    onPressed: onRefresh,
-                    icon: const Icon(
-                      RemixIcons.refresh_line,
-                      size: 16,
-                      color: ShadTokens.mutedForeground,
+                  if (connected)
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      tooltip: '刷新',
+                      onPressed: onRefresh,
+                      icon: const Icon(
+                        RemixIcons.refresh_line,
+                        size: 16,
+                        color: ShadTokens.mutedForeground,
+                      ),
                     ),
-                  ),
-                  if (active || status == ConnectionStatus.success)
+                  if (connected)
                     IconButton(
                       visualDensity: VisualDensity.compact,
                       tooltip: '断开连接',
@@ -295,33 +297,34 @@ class _ConnectionNode extends StatelessWidget {
                         color: ShadTokens.mutedForeground,
                       ),
                     ),
-                  PopupMenuButton<_ConnAction>(
-                    tooltip: '操作',
-                    icon: const Icon(
-                      RemixIcons.more_line,
-                      size: 16,
-                      color: ShadTokens.mutedForeground,
+                  if (connected)
+                    PopupMenuButton<_ConnAction>(
+                      tooltip: '操作',
+                      icon: const Icon(
+                        RemixIcons.more_line,
+                        size: 16,
+                        color: ShadTokens.mutedForeground,
+                      ),
+                      onSelected: (action) => switch (action) {
+                        _ConnAction.test => onTest(),
+                        _ConnAction.edit => onEdit(),
+                        _ConnAction.delete => onDelete(),
+                      },
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(
+                          value: _ConnAction.test,
+                          child: Text('测试连接'),
+                        ),
+                        PopupMenuItem(
+                          value: _ConnAction.edit,
+                          child: Text('编辑连接'),
+                        ),
+                        PopupMenuItem(
+                          value: _ConnAction.delete,
+                          child: Text('删除连接'),
+                        ),
+                      ],
                     ),
-                    onSelected: (action) => switch (action) {
-                      _ConnAction.test => onTest(),
-                      _ConnAction.edit => onEdit(),
-                      _ConnAction.delete => onDelete(),
-                    },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(
-                        value: _ConnAction.test,
-                        child: Text('测试连接'),
-                      ),
-                      PopupMenuItem(
-                        value: _ConnAction.edit,
-                        child: Text('编辑连接'),
-                      ),
-                      PopupMenuItem(
-                        value: _ConnAction.delete,
-                        child: Text('删除连接'),
-                      ),
-                    ],
-                  ),
                   AnimatedRotation(
                     turns: expanded ? 0.25 : 0.0,
                     duration: const Duration(milliseconds: 150),

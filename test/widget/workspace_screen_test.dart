@@ -28,8 +28,16 @@ void main() {
 
     expect(tester.takeException(), isNull, reason: '不应有渲染异常');
     expect(find.byType(SqlEditor), findsOneWidget, reason: 'SQL 编辑器应渲染');
+    expect(tester.widget<TabBar>(find.byType(TabBar)).tabs.length, 4);
     for (final label in ['表管理', '用户与权限', '数据浏览', '执行结果']) {
-      expect(find.text(label), findsOneWidget, reason: '底部 Tab「$label」应存在');
+      expect(
+        find.descendant(
+          of: find.byType(TabBar),
+          matching: find.text(label),
+        ),
+        findsOneWidget,
+        reason: '底部 Tab「$label」应存在',
+      );
     }
     expect(find.byType(CodeEditor), findsOneWidget);
   });
@@ -56,8 +64,8 @@ void main() {
     ref(workspaceViewProvider.notifier).showTabs();
     await tester.pumpAndSettle();
 
-    // 进入 tabs 视图默认展开：底部内容区可见
-    expect(find.byType(ResultPanel), findsOneWidget);
+    // 进入 tabs 视图默认展开：底部内容区（IndexedStack）可见
+    expect(find.byType(IndexedStack), findsOneWidget);
 
     // 写入 SQL 并执行（Cmd/Ctrl + Enter）
     final editor = tester.widget<CodeEditor>(find.byType(CodeEditor));
