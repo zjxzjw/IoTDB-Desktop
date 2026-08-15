@@ -47,7 +47,8 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
   @override
   void initState() {
     super.initState();
-    _addTab();
+    _tabs.add(_SqlTab('查询 1'));
+    _active = 0;
     if (widget.initialSql != null && widget.initialSql!.isNotEmpty) {
       _tabs.last.controller.text = widget.initialSql!;
     }

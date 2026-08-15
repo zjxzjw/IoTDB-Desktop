@@ -354,12 +354,26 @@ class _WorkspaceResizeHandle extends StatelessWidget {
         onVerticalDragEnd: (_) {},
         child: SizedBox(
           height: 6,
-          child: Center(
-            child: Container(
-              width: double.infinity,
-              height: 1,
-              color: ShadTokens.border,
-            ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Center(
+                child: Container(
+                  height: 1,
+                  color: ShadTokens.border,
+                ),
+              ),
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: ShadTokens.mutedForeground,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -375,7 +389,8 @@ class WorkspaceScreen extends ConsumerStatefulWidget {
   ConsumerState<WorkspaceScreen> createState() => _WorkspaceScreenState();
 }
 
-class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
+class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
+    with SingleTickerProviderStateMixin {
   static const double _tabBarHeight = 48;
   static const double _resizeHandleHeight = 6;
   static const double _minSqlHeight = 120;
@@ -386,6 +401,31 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
 
   /// SQL 区像素高度（首次展开按总量 × 0.45 初始化，之后记住用户拖拽结果）
   double _sqlHeight = 0;
+
+  /// 底部 TabBar 控制器：与 workspaceTabProvider 双向同步，
+  /// 保证 provider 外部切换（执行 SQL / 侧栏跳转）时 TabBar 选中态一致
+  late final TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+      initialIndex: ref.read(workspaceTabProvider),
+    );
+    ref.listenManual(workspaceTabProvider, (prev, next) {
+      if (mounted && next != _tabController.index) {
+        _tabController.index = next;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   void _expand(double total) {
     if (_sqlHeight <= 0) {
@@ -439,9 +479,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
     final showTabs = view == WorkspaceView.tabs;
     final tab = ref.watch(workspaceTabProvider);
     final results = ref.watch(sqlRunResultsProvider);
-    return DefaultTabController(
-      length: 4,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           titleSpacing: ShadTokens.space4,
           title: Row(
@@ -588,6 +626,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                             children: [
                               Expanded(
                                 child: TabBar(
+                                  controller: _tabController,
                                   onTap: (i) {
                                     ref
                                         .read(workspaceTabProvider.notifier)
@@ -639,7 +678,6 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                 },
               )
             : const DashboardPage(),
-      ),
     );
   }
 }

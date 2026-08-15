@@ -54,10 +54,7 @@ class _ResultTableState extends State<ResultTable> {
   Widget build(BuildContext context) {
     final rows = widget.rows;
     if (rows.isEmpty) {
-      return const EmptyState(
-        title: '查询结果为空',
-        icon: Icons.table_rows_outlined,
-      );
+      return const EmptyState(title: '查询结果为空', icon: Icons.table_rows_outlined);
     }
     final start = _page * widget.pageSize;
     final pageRows = rows.skip(start).take(widget.pageSize).toList();
@@ -65,37 +62,40 @@ class _ResultTableState extends State<ResultTable> {
     return Column(
       children: [
         Expanded(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final viewport = constraints.maxWidth;
-              final colCount = widget.columns.length;
-              final colWidth = math.max(
-                _minColWidth,
-                colCount == 0 ? _minColWidth : viewport / colCount,
-              );
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: viewport),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(colWidth),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              for (final row in pageRows)
-                                _buildRow(row, colWidth),
-                            ],
+          child: Padding(
+            padding: const EdgeInsets.only(top: ShadTokens.space2),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final viewport = constraints.maxWidth;
+                final colCount = widget.columns.length;
+                final colWidth = math.max(
+                  _minColWidth,
+                  colCount == 0 ? _minColWidth : viewport / colCount,
+                );
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minWidth: viewport),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHeader(colWidth),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                for (final row in pageRows)
+                                  _buildRow(row, colWidth),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
         _buildFooter(),
