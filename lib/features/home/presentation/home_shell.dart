@@ -14,6 +14,8 @@ import '../../dashboard/presentation/dashboard_page.dart';
 import '../../data/presentation/data_browse_page.dart';
 import '../../database/presentation/create_database_form.dart';
 import '../../database/presentation/table_page.dart';
+import '../../sql/data/sql_run_results_provider.dart';
+import '../../sql/presentation/result_panel.dart';
 import '../../sql/presentation/sql_workbench_page.dart';
 import '../../users/presentation/users_page.dart';
 
@@ -95,7 +97,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     onDelete: _noop,
                     onDisconnect: _noop,
                     onSelectDatabase: _noopSelectDb,
-                    onSelectTable: _noopSelectTable,
                   ),
                   error: (e, _) => const ConnectionSidebar(
                     connections: [],
@@ -106,7 +107,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     onDelete: _noop,
                     onDisconnect: _noop,
                     onSelectDatabase: _noopSelectDb,
-                    onSelectTable: _noopSelectTable,
                   ),
                   data: (list) => ConnectionSidebar(
                     connections: list,
@@ -118,8 +118,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     onDelete: (c) => _deleteConnection(context, ref, c),
                     onDisconnect: (c) => _disconnectConnection(ref, c),
                     onSelectDatabase: (c, db) => _selectDatabase(ref, c, db),
-                    onSelectTable: (c, db, table) =>
-                        _selectTable(ref, c, db, table),
                   ),
                 ),
           ),
@@ -142,8 +140,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   static void _noopSelectDb(Connection c, String db) {}
 
-  static void _noopSelectTable(Connection c, String db, String table) {}
-
   /// 点击侧栏数据库：激活对应连接，切到「表管理」并选中该数据库
   Future<void> _selectDatabase(
     WidgetRef ref,
@@ -157,24 +153,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     }
     ref.read(databaseSelectionProvider.notifier).select(db);
     ref.read(tableSelectionProvider.notifier).clear();
-    ref.read(workspaceViewProvider.notifier).showTabs();
-    ref.read(workspaceTabProvider.notifier).select(0);
-  }
-
-  /// 点击侧栏表：激活对应连接，切到「表管理」并选中该表
-  Future<void> _selectTable(
-    WidgetRef ref,
-    Connection conn,
-    String db,
-    String table,
-  ) async {
-    final active = ref.read(activeConnectionProvider);
-    if (active?.id != conn.id) {
-      await _openWorkspace(ref, conn);
-      if (ref.read(activeConnectionProvider)?.id != conn.id) return;
-    }
-    ref.read(databaseSelectionProvider.notifier).select(db);
-    ref.read(tableSelectionProvider.notifier).select(table);
     ref.read(workspaceViewProvider.notifier).showTabs();
     ref.read(workspaceTabProvider.notifier).select(0);
   }
@@ -436,6 +414,14 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
     });
   }
 
+  /// SQL 执行后：展开底部面板并切换到「执行结果」tab
+  void _onSqlExecuted(double total) {
+    if (!_tabsExpanded) {
+      _expand(total);
+    }
+    ref.read(workspaceTabProvider.notifier).select(3);
+  }
+
   @override
   Widget build(BuildContext context) {
     final conn = ref.watch(activeConnectionProvider);
@@ -452,8 +438,9 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
     final view = ref.watch(workspaceViewProvider);
     final showTabs = view == WorkspaceView.tabs;
     final tab = ref.watch(workspaceTabProvider);
+    final results = ref.watch(sqlRunResultsProvider);
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           titleSpacing: ShadTokens.space4,
@@ -586,7 +573,9 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                     children: [
                       SizedBox(
                         height: sqlHeight,
-                        child: const SqlWorkbenchPage(),
+                        child: SqlWorkbenchPage(
+                          onExecuted: () => _onSqlExecuted(total),
+                        ),
                       ),
                       _WorkspaceResizeHandle(
                         onDrag: (dy) => _onResizeDrag(dy, total),
@@ -608,6 +597,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                                     Tab(text: '表管理'),
                                     Tab(text: '用户与权限'),
                                     Tab(text: '数据浏览'),
+                                    Tab(text: '执行结果'),
                                   ],
                                 ),
                               ),
@@ -636,10 +626,11 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen> {
                           ),
                           child: IndexedStack(
                             index: tab,
-                            children: const [
-                              TablePage(),
-                              UsersPage(),
-                              DataBrowsePage(),
+                            children: [
+                              const TablePage(),
+                              const UsersPage(),
+                              const DataBrowsePage(),
+                              ResultPanel(results: results),
                             ],
                           ),
                         ),

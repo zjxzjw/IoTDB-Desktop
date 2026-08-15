@@ -3,18 +3,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:re_editor/re_editor.dart';
 import 'package:remixicon/remixicon.dart';
 
+import '../../../core/models/sql_run_result.dart';
 import '../../../core/network/statement_router.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/shadcn_tokens.dart';
 import '../data/sql_history_provider.dart';
-import 'result_panel.dart';
+import '../data/sql_run_results_provider.dart';
 import 'sql_editor.dart';
 
-/// SQL 工作台：多标签编辑器 + 执行结果 + 历史
+/// SQL 工作台：多标签编辑器 + 历史（执行结果在底部「执行结果」面板）
 class SqlWorkbenchPage extends ConsumerStatefulWidget {
   final String? initialSql;
+  final VoidCallback? onExecuted;
 
-  const SqlWorkbenchPage({super.key, this.initialSql});
+  const SqlWorkbenchPage({super.key, this.initialSql, this.onExecuted});
 
   @override
   ConsumerState<SqlWorkbenchPage> createState() => _SqlWorkbenchPageState();
@@ -64,6 +66,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
       _tabs.add(_SqlTab('查询 ${_tabs.length + 1}'));
       _active = _tabs.length - 1;
     });
+    _syncResults();
   }
 
   void _closeTab(int index) {
@@ -73,6 +76,13 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     if (_active >= _tabs.length) _active = _tabs.length - 1;
     if (index < _active) _active--;
     setState(() {});
+    _syncResults();
+  }
+
+  /// 将当前活动标签的结果同步到「执行结果」面板
+  void _syncResults() {
+    final tab = _current;
+    ref.read(sqlRunResultsProvider.notifier).set(tab?.results ?? const []);
   }
 
   /// 按 ; 拆分语句（简单处理：忽略空段与纯注释段）
@@ -99,6 +109,8 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
 
     final statements = _splitStatements(sql);
     setState(() => tab.results = [const SqlRunResult.running()]);
+    _syncResults();
+    widget.onExecuted?.call();
     final results = <SqlRunResult>[];
     final sw = Stopwatch()..start();
     var success = true;
@@ -126,6 +138,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     ));
     if (!mounted) return;
     setState(() => tab.results = results);
+    _syncResults();
     if (tab.focusNode.hasFocus || tab.focusNode.canRequestFocus) {
       tab.focusNode.requestFocus();
     }
@@ -221,18 +234,13 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
       children: [
         _buildTabBar(currentDb),
         Expanded(
-          child: _VerticalSplitPane(
-            top: current == null
-                ? const SizedBox.shrink()
-                : SqlEditor(
-                    controller: current.controller,
-                    focusNode: current.focusNode,
-                    onRun: _run,
-                  ),
-            bottom: current == null
-                ? const SizedBox.shrink()
-                : ResultPanel(results: current.results),
-          ),
+          child: current == null
+              ? const SizedBox.shrink()
+              : SqlEditor(
+                  controller: current.controller,
+                  focusNode: current.focusNode,
+                  onRun: _run,
+                ),
         ),
       ],
     );
@@ -317,7 +325,10 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     final tab = _tabs[index];
     final selected = index == _active;
     return InkWell(
-      onTap: () => setState(() => _active = index),
+      onTap: () {
+        setState(() => _active = index);
+        _syncResults();
+      },
       child: Container(
         padding: const EdgeInsets.only(left: ShadTokens.space3),
         decoration: BoxDecoration(
@@ -342,93 +353,6 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
                 icon: const Icon(RemixIcons.close_line),
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// 垂直分割面板：上下两块区域，中间是可拖拽高度的分割线指示器（仅会话内记忆比例）
-class _VerticalSplitPane extends StatefulWidget {
-  final Widget top;
-  final Widget bottom;
-
-  const _VerticalSplitPane({
-    required this.top,
-    required this.bottom,
-  });
-
-  @override
-  State<_VerticalSplitPane> createState() => _VerticalSplitPaneState();
-}
-
-class _VerticalSplitPaneState extends State<_VerticalSplitPane> {
-  static const double _initialFraction = 0.625;
-  static const double _minFraction = 0.15;
-  static const double _maxFraction = 0.85;
-
-  late double _fraction = _initialFraction;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final totalHeight = constraints.maxHeight;
-        final topHeight = (totalHeight * _fraction).clamp(0.0, totalHeight);
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              height: topHeight,
-              child: widget.top,
-            ),
-            _buildHandle(totalHeight),
-            Expanded(
-              child: widget.bottom,
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildHandle(double totalHeight) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.resizeUpDown,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onVerticalDragUpdate: (details) {
-          if (totalHeight <= 0) return;
-          setState(() {
-            _fraction = ((_fraction * totalHeight + details.delta.dy) / totalHeight)
-                .clamp(_minFraction, _maxFraction);
-          });
-        },
-        onDoubleTap: () => setState(() => _fraction = _initialFraction),
-        child: SizedBox(
-          height: 8,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  height: 1,
-                  color: ShadTokens.border,
-                ),
-              ),
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: ShadTokens.mutedForeground,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

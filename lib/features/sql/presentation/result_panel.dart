@@ -1,43 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:remixicon/remixicon.dart';
 
-import '../../../core/models/query_result.dart';
+import '../../../core/models/sql_run_result.dart';
 import '../../../core/theme/shadcn_tokens.dart';
 import '../../../shared/empty_state.dart';
 import '../../../shared/result_table.dart';
-
-enum SqlRunKind { idle, running, success, error }
-
-/// 一次 SQL 执行的结果
-class SqlRunResult {
-  final SqlRunKind kind;
-  final QueryResult? query;
-  final String? message;
-  final int? elapsedMs;
-  final String sql;
-
-  const SqlRunResult.idle()
-      : kind = SqlRunKind.idle,
-        query = null,
-        message = null,
-        elapsedMs = null,
-        sql = '';
-
-  const SqlRunResult.running()
-      : kind = SqlRunKind.running,
-        query = null,
-        message = null,
-        elapsedMs = null,
-        sql = '';
-
-  SqlRunResult.success({this.query, this.message, this.elapsedMs, required this.sql})
-      : kind = SqlRunKind.success;
-
-  SqlRunResult.error(this.message, this.sql)
-      : kind = SqlRunKind.error,
-        query = null,
-        elapsedMs = null;
-}
 
 /// 结果面板：渲染 SQL 执行结果列表（多语句时逐条展示）
 class ResultPanel extends StatelessWidget {

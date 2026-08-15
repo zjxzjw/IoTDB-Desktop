@@ -6,7 +6,6 @@ import '../../../core/models/connection.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/shadcn_tokens.dart';
 import '../../settings/presentation/settings_dialog.dart';
-import '../../database/data/database_providers.dart';
 import 'connection_form_sheet.dart';
 
 /// 侧边栏：连接树（可展开显示数据库 → 表）+ 新建入口
@@ -19,7 +18,6 @@ class ConnectionSidebar extends ConsumerStatefulWidget {
   final ValueChanged<Connection> onDelete;
   final ValueChanged<Connection> onDisconnect;
   final void Function(Connection conn, String db) onSelectDatabase;
-  final void Function(Connection conn, String db, String table) onSelectTable;
 
   const ConnectionSidebar({
     super.key,
@@ -31,7 +29,6 @@ class ConnectionSidebar extends ConsumerStatefulWidget {
     required this.onDelete,
     required this.onDisconnect,
     required this.onSelectDatabase,
-    required this.onSelectTable,
   });
 
   @override
@@ -159,7 +156,6 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
               widget.onDisconnect(conn);
             },
             onSelectDatabase: (db) => widget.onSelectDatabase(conn, db),
-            onSelectTable: (db, table) => widget.onSelectTable(conn, db, table),
           ),
         ],
       ],
@@ -205,7 +201,6 @@ class _ConnectionNode extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onDisconnect;
   final ValueChanged<String> onSelectDatabase;
-  final void Function(String db, String table) onSelectTable;
 
   const _ConnectionNode({
     required this.conn,
@@ -219,7 +214,6 @@ class _ConnectionNode extends StatelessWidget {
     required this.onDelete,
     required this.onDisconnect,
     required this.onSelectDatabase,
-    required this.onSelectTable,
   });
 
   @override
@@ -355,7 +349,6 @@ class _ConnectionNode extends StatelessWidget {
             child: _DatabaseList(
               conn: conn,
               onSelectDatabase: onSelectDatabase,
-              onSelectTable: onSelectTable,
             ),
           ),
       ],
@@ -374,12 +367,10 @@ enum _ConnAction { test, edit, delete }
 class _DatabaseList extends ConsumerStatefulWidget {
   final Connection conn;
   final ValueChanged<String> onSelectDatabase;
-  final void Function(String db, String table) onSelectTable;
 
   const _DatabaseList({
     required this.conn,
     required this.onSelectDatabase,
-    required this.onSelectTable,
   });
 
   @override
@@ -387,8 +378,6 @@ class _DatabaseList extends ConsumerStatefulWidget {
 }
 
 class _DatabaseListState extends ConsumerState<_DatabaseList> {
-  final Set<String> _expanded = {};
-
   @override
   Widget build(BuildContext context) {
     final result = ref.watch(connectionDatabaseListProvider(widget.conn));
@@ -429,17 +418,9 @@ class _DatabaseListState extends ConsumerState<_DatabaseList> {
               children: [
                 for (final row in r.rows)
                   _DatabaseRow(
-                    conn: widget.conn,
                     db: row.first.toString(),
-                    expanded: _expanded.contains(row.first.toString()),
-                    onToggle: () => setState(() {
-                      final db = row.first.toString();
-                      _expanded.contains(db)
-                          ? _expanded.remove(db)
-                          : _expanded.add(db);
-                    }),
-                    onSelect: () => widget.onSelectDatabase(row.first.toString()),
-                    onSelectTable: widget.onSelectTable,
+                    onSelect: () =>
+                        widget.onSelectDatabase(row.first.toString()),
                   ),
               ],
             ),
@@ -448,200 +429,45 @@ class _DatabaseListState extends ConsumerState<_DatabaseList> {
 }
 
 class _DatabaseRow extends ConsumerWidget {
-  final Connection conn;
   final String db;
-  final bool expanded;
-  final VoidCallback onToggle;
   final VoidCallback onSelect;
-  final void Function(String db, String table) onSelectTable;
 
   const _DatabaseRow({
-    required this.conn,
     required this.db,
-    required this.expanded,
-    required this.onToggle,
     required this.onSelect,
-    required this.onSelectTable,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isLight = Theme.of(context).brightness == Brightness.light;
     final selected = ref.watch(databaseSelectionProvider) == db;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ListTile(
-          dense: true,
-          visualDensity: VisualDensity.compact,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: ShadTokens.space2,
-          ),
-          leading: Icon(
-            RemixIcons.database_2_line,
-            size: 15,
-            color: selected
-                ? (isLight ? ShadTokens.primary : ShadTokens.primaryDark)
-                : ShadTokens.mutedForeground,
-          ),
-          title: Text(
-            db,
-            style: TextStyle(
-              fontSize: ShadTokens.fontBody,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              color: selected
-                  ? (isLight ? ShadTokens.foreground : ShadTokens.foregroundDark)
-                  : (isLight
-                        ? ShadTokens.mutedForeground
-                        : ShadTokens.mutedForegroundDark),
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-          trailing: AnimatedRotation(
-            turns: expanded ? 0.25 : 0.0,
-            duration: const Duration(milliseconds: 150),
-            child: const Icon(
-              RemixIcons.arrow_right_s_line,
-              size: 15,
-              color: ShadTokens.placeholder,
-            ),
-          ),
-          onTap: () {
-            onToggle();
-            onSelect();
-          },
-        ),
-        if (expanded)
-          Padding(
-            padding: const EdgeInsets.only(left: ShadTokens.space3),
-            child: _TableList(conn: conn, db: db, onSelectTable: onSelectTable),
-          ),
-      ],
-    );
-  }
-}
-
-class _TableList extends ConsumerWidget {
-  final Connection conn;
-  final String db;
-  final void Function(String db, String table) onSelectTable;
-
-  const _TableList({
-    required this.conn,
-    required this.db,
-    required this.onSelectTable,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final result = ref.watch(connectionTableListProvider(TableScope(conn, db)));
-    return result.when(
-      loading: () => const Padding(
-        padding: EdgeInsets.all(ShadTokens.space3),
-        child: Center(
-          child: SizedBox(
-            width: 14,
-            height: 14,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
+    return ListTile(
+      dense: true,
+      visualDensity: VisualDensity.compact,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: ShadTokens.space2,
       ),
-      error: (e, _) => Padding(
-        padding: const EdgeInsets.all(ShadTokens.space2),
-        child: Text(
-          '加载失败：$e',
-          style: const TextStyle(
-            fontSize: ShadTokens.fontAux,
-            color: ShadTokens.destructive,
-          ),
-        ),
+      leading: Icon(
+        RemixIcons.database_2_line,
+        size: 15,
+        color: selected
+            ? (isLight ? ShadTokens.primary : ShadTokens.primaryDark)
+            : ShadTokens.mutedForeground,
       ),
-      data: (r) => r.rows.isEmpty
-          ? const Padding(
-              padding: EdgeInsets.all(ShadTokens.space2),
-              child: Text(
-                '无表',
-                style: TextStyle(
-                  fontSize: ShadTokens.fontAux,
-                  color: ShadTokens.placeholder,
-                ),
-              ),
-            )
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                for (final row in r.rows)
-                  _TableTile(
-                    db: db,
-                    table: row.first.toString(),
-                    onSelect: () => onSelectTable(db, row.first.toString()),
-                  ),
-              ],
-            ),
-    );
-  }
-}
-
-class _TableTile extends ConsumerWidget {
-  final String db;
-  final String table;
-  final VoidCallback onSelect;
-
-  const _TableTile({
-    required this.db,
-    required this.table,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final selected =
-        ref.watch(tableSelectionProvider) == table &&
-        ref.watch(databaseSelectionProvider) == db;
-    final isLight = Theme.of(context).brightness == Brightness.light;
-    return InkWell(
-      onTap: onSelect,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: ShadTokens.space2,
-          vertical: 5,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+      title: Text(
+        db,
+        style: TextStyle(
+          fontSize: ShadTokens.fontBody,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
           color: selected
-              ? (isLight ? ShadTokens.sidebarActive : ShadTokens.sidebarActiveDark)
-              : null,
+              ? (isLight ? ShadTokens.foreground : ShadTokens.foregroundDark)
+              : (isLight
+                    ? ShadTokens.mutedForeground
+                    : ShadTokens.mutedForegroundDark),
         ),
-        child: Row(
-          children: [
-            Icon(
-              RemixIcons.table_line,
-              size: 14,
-              color: selected
-                  ? (isLight ? ShadTokens.primary : ShadTokens.primaryDark)
-                  : ShadTokens.mutedForeground,
-            ),
-            const SizedBox(width: ShadTokens.space2),
-            Expanded(
-              child: Text(
-                table,
-                style: TextStyle(
-                  fontSize: ShadTokens.fontBody,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                  color: selected
-                      ? (isLight
-                            ? ShadTokens.foreground
-                            : ShadTokens.foregroundDark)
-                      : (isLight
-                            ? ShadTokens.mutedForeground
-                            : ShadTokens.mutedForegroundDark),
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
+        overflow: TextOverflow.ellipsis,
       ),
+      onTap: onSelect,
     );
   }
 }
