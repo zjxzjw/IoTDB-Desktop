@@ -73,7 +73,6 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
                 icon: const Icon(RemixIcons.add_line, size: 16),
                 label: const Text('新建连接'),
                 style: FilledButton.styleFrom(
-                  backgroundColor: const Color(0xFF8E246C),
                   foregroundColor: Colors.white,
                   minimumSize: const Size.fromHeight(45),
                   shape: RoundedRectangleBorder(
@@ -82,6 +81,32 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
                     ),
                   ),
                 ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                ShadTokens.space3,
+                ShadTokens.space3,
+                ShadTokens.space3,
+                ShadTokens.space1,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    '连接管理',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: ShadTokens.mutedForeground,
+                    ),
+                  ),
+                  const Icon(
+                    RemixIcons.folder_line,
+                    size: 16,
+                    color: ShadTokens.mutedForeground,
+                  ),
+                ],
               ),
             ),
             Expanded(
