@@ -3,9 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:iotdb_desktop/core/models/table_meta.dart';
 import 'package:iotdb_desktop/features/database/presentation/column_defs_editor.dart';
 
-Finder fieldWithLabel(String label) => find.byWidgetPredicate(
-  (w) => w is TextField && w.decoration?.labelText == label,
-);
+Finder colNameField() => find.byType(TextField).at(0);
 
 void main() {
   testWidgets('输入列名后产出 TableColumn（默认 FIELD/DOUBLE）', (tester) async {
@@ -17,7 +15,7 @@ void main() {
         ),
       ),
     );
-    await tester.enterText(fieldWithLabel('列名 *'), 'temperature');
+    await tester.enterText(colNameField(), 'temperature');
     await tester.pump();
     expect(emitted, isNotNull);
     expect(emitted!.length, 1);
@@ -35,7 +33,7 @@ void main() {
         ),
       ),
     );
-    await tester.enterText(fieldWithLabel('列名 *'), '   ');
+    await tester.enterText(colNameField(), '   ');
     await tester.pump();
     expect(emitted, isNotNull);
     expect(emitted, isEmpty);
@@ -50,7 +48,7 @@ void main() {
         ),
       ),
     );
-    await tester.enterText(fieldWithLabel('列名 *'), 'device_id');
+    await tester.enterText(colNameField(), 'device_id');
     // 类别下拉选择「标签列」（第二个选项）
     await tester.tap(find.byType(DropdownButton<ColumnCategory>));
     await tester.pumpAndSettle();
@@ -89,7 +87,7 @@ void main() {
         ),
       ),
     );
-    await tester.enterText(fieldWithLabel('列名 *'), 'a');
+    await tester.enterText(colNameField(), 'a');
     await tester.tap(find.text('添加列'));
     await tester.pumpAndSettle();
     expect(find.text('添加列'), findsOneWidget);

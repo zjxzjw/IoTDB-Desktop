@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:remixicon/remixicon.dart';
 
 import '../../../core/models/table_meta.dart';
 import '../../../core/providers.dart';
@@ -9,43 +8,17 @@ import '../../../core/utils/sql_builder.dart';
 import '../data/database_providers.dart';
 import 'column_defs_editor.dart';
 
-/// 建表表单（ModalBottomSheet）
-Future<void> showCreateTableSheet(
-  BuildContext context,
-  WidgetRef ref, {
-  required String db,
-}) {
-  return showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: ShadTokens.card,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(ShadTokens.radiusLarge),
-      ),
-    ),
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        left: ShadTokens.space6,
-        right: ShadTokens.space6,
-        top: ShadTokens.space4,
-        bottom: MediaQuery.of(context).viewInsets.bottom + ShadTokens.space6,
-      ),
-      child: CreateTableSheet(db: db),
-    ),
-  );
-}
-
-class CreateTableSheet extends ConsumerStatefulWidget {
+/// 建表表单（内嵌于表管理页右侧区域）
+class CreateTableForm extends ConsumerStatefulWidget {
   final String db;
 
-  const CreateTableSheet({super.key, required this.db});
+  const CreateTableForm({super.key, required this.db});
 
   @override
-  ConsumerState<CreateTableSheet> createState() => _CreateTableSheetState();
+  ConsumerState<CreateTableForm> createState() => _CreateTableFormState();
 }
 
-class _CreateTableSheetState extends ConsumerState<CreateTableSheet> {
+class _CreateTableFormState extends ConsumerState<CreateTableForm> {
   final _formKey = GlobalKey<FormState>();
   final _table = TextEditingController();
   final _comment = TextEditingController();
@@ -83,10 +56,7 @@ class _CreateTableSheetState extends ConsumerState<CreateTableSheet> {
       );
       await ref.read(iotdbClientProvider).nonQuery(sql);
       if (!mounted) return;
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('表创建成功')),
-      );
+      _exitCreateMode();
       _invalidateSchema();
     } catch (e) {
       if (!mounted) return;
@@ -96,6 +66,10 @@ class _CreateTableSheetState extends ConsumerState<CreateTableSheet> {
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  void _exitCreateMode() {
+    ref.read(createTableModeProvider.notifier).set(false);
   }
 
   void _invalidateSchema() {
@@ -108,64 +82,46 @@ class _CreateTableSheetState extends ConsumerState<CreateTableSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
+    return Padding(
+      padding: const EdgeInsets.all(ShadTokens.space6),
+      child: Form(
+        key: _formKey,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 640),
+          constraints: const BoxConstraints(maxWidth: 720),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    RemixIcons.table_line,
-                    size: 18,
-                    color: ShadTokens.primary,
-                  ),
-                  const SizedBox(width: ShadTokens.space2),
-                  const Text(
-                    '新建表',
-                    style: TextStyle(
-                      fontSize: ShadTokens.fontTitle,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: _Field(
+                      label: '表名 *',
+                      child: TextFormField(
+                        key: const Key('create-table-name'),
+                        controller: _table,
+                        decoration: const InputDecoration(isDense: true),
+                        validator: (v) => (v == null || v.trim().isEmpty)
+                            ? '请输入表名'
+                            : null,
+                      ),
                     ),
                   ),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(RemixIcons.close_line, size: 18),
-                    visualDensity: VisualDensity.compact,
+                  const SizedBox(width: ShadTokens.space4),
+                  Expanded(
+                    child: _Field(
+                      label: '表注释（可选）',
+                      child: TextFormField(
+                        key: const Key('create-table-comment'),
+                        controller: _comment,
+                        decoration: const InputDecoration(isDense: true),
+                      ),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: ShadTokens.space3),
-              Text('数据库：${widget.db}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: ShadTokens.mutedForeground,
-                ),
-              ),
-              const SizedBox(height: ShadTokens.space3),
-              TextFormField(
-                controller: _table,
-                decoration: const InputDecoration(
-                  labelText: '表名 *',
-                  hintText: '如：wind_turbine',
-                ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? '请输入表名' : null,
-              ),
-              const SizedBox(height: ShadTokens.space3),
-              TextFormField(
-                controller: _comment,
-                decoration: const InputDecoration(
-                  labelText: '表注释（可选）',
-                  hintText: '对该类设备的说明',
-                ),
-              ),
-              const SizedBox(height: ShadTokens.space2),
+              const SizedBox(height: ShadTokens.space4),
               CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 dense: true,
@@ -176,20 +132,23 @@ class _CreateTableSheetState extends ConsumerState<CreateTableSheet> {
                 value: _enableTtl,
                 onChanged: (v) => setState(() => _enableTtl = v ?? false),
               ),
-              if (_enableTtl)
-                TextFormField(
-                  controller: _ttl,
-                  decoration: const InputDecoration(
-                    labelText: 'TTL（毫秒）',
-                    hintText: '如：604800000（7 天）',
+              if (_enableTtl) ...[
+                const SizedBox(height: ShadTokens.space2),
+                _Field(
+                  label: 'TTL（毫秒）',
+                  child: TextFormField(
+                    key: const Key('create-table-ttl'),
+                    controller: _ttl,
+                    decoration: const InputDecoration(isDense: true),
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      final n = int.tryParse(v ?? '');
+                      return (n == null || n < 1) ? '需为正整数毫秒' : null;
+                    },
                   ),
-                  keyboardType: TextInputType.number,
-                  validator: (v) {
-                    final n = int.tryParse(v ?? '');
-                    return (n == null || n < 1) ? '需为正整数毫秒' : null;
-                  },
                 ),
-              const SizedBox(height: ShadTokens.space4),
+              ],
+              const SizedBox(height: ShadTokens.space6),
               const Text(
                 '列定义',
                 style: TextStyle(
@@ -197,7 +156,7 @@ class _CreateTableSheetState extends ConsumerState<CreateTableSheet> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const SizedBox(height: ShadTokens.space2),
+              const SizedBox(height: ShadTokens.space1),
               const Text(
                 '时间列（TIME）可不定义，系统自动添加并命名为 time。'
                 '标签列/属性列类型固定为 STRING。',
@@ -206,7 +165,7 @@ class _CreateTableSheetState extends ConsumerState<CreateTableSheet> {
                   color: ShadTokens.mutedForeground,
                 ),
               ),
-              const SizedBox(height: ShadTokens.space3),
+              const SizedBox(height: ShadTokens.space4),
               ColumnDefsEditor(
                 onChanged: (cols) => _columns = cols,
               ),
@@ -215,7 +174,7 @@ class _CreateTableSheetState extends ConsumerState<CreateTableSheet> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: _exitCreateMode,
                     child: const Text('取消'),
                   ),
                   const SizedBox(width: ShadTokens.space2),
@@ -238,6 +197,32 @@ class _CreateTableSheetState extends ConsumerState<CreateTableSheet> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _Field extends StatelessWidget {
+  final String label;
+  final Widget child;
+
+  const _Field({required this.label, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: ShadTokens.space2),
+        child,
+      ],
     );
   }
 }

@@ -452,7 +452,6 @@ class _ClusterTable extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: ShadTokens.border),
-        borderRadius: BorderRadius.circular(ShadTokens.radiusMedium),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(
@@ -569,7 +568,6 @@ class _DatabaseTable extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: ShadTokens.border),
-        borderRadius: BorderRadius.circular(ShadTokens.radiusMedium),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(

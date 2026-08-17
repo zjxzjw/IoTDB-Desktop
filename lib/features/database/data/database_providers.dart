@@ -44,3 +44,16 @@ final columnListProvider = FutureProvider.family<QueryResult, TableRef>(
         .query('DESC ${SqlBuilder.qualified(tableRef.db, tableRef.table)} DETAILS');
   },
 );
+
+/// 表管理页右侧：是否处于「新建表」模式（内嵌表单替代弹窗）
+final createTableModeProvider =
+    NotifierProvider<CreateTableModeNotifier, bool>(
+      CreateTableModeNotifier.new,
+    );
+
+class CreateTableModeNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void set(bool value) => state = value;
+}

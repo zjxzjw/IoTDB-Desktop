@@ -9,45 +9,32 @@ import '../../../core/utils/sql_builder.dart';
 import '../data/database_providers.dart';
 import 'column_defs_editor.dart';
 
-/// 给表添加列（ModalBottomSheet）：仅允许 TAG / ATTRIBUTE / FIELD 列
-Future<void> showAddColumnSheet(
+/// 给表添加列（居中弹窗）：仅允许 TAG / ATTRIBUTE / FIELD 列
+Future<void> showAddColumnDialog(
   BuildContext context,
   WidgetRef ref, {
   required String db,
   required String table,
 }) {
-  return showModalBottomSheet(
+  return showDialog(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: ShadTokens.card,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(
-        top: Radius.circular(ShadTokens.radiusLarge),
-      ),
-    ),
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        left: ShadTokens.space6,
-        right: ShadTokens.space6,
-        top: ShadTokens.space4,
-        bottom: MediaQuery.of(context).viewInsets.bottom + ShadTokens.space6,
-      ),
-      child: AddColumnSheet(db: db, table: table),
-    ),
+    barrierDismissible: false,
+    useSafeArea: true,
+    builder: (context) => AddColumnDialog(db: db, table: table),
   );
 }
 
-class AddColumnSheet extends ConsumerStatefulWidget {
+class AddColumnDialog extends ConsumerStatefulWidget {
   final String db;
   final String table;
 
-  const AddColumnSheet({super.key, required this.db, required this.table});
+  const AddColumnDialog({super.key, required this.db, required this.table});
 
   @override
-  ConsumerState<AddColumnSheet> createState() => _AddColumnSheetState();
+  ConsumerState<AddColumnDialog> createState() => _AddColumnDialogState();
 }
 
-class _AddColumnSheetState extends ConsumerState<AddColumnSheet> {
+class _AddColumnDialogState extends ConsumerState<AddColumnDialog> {
   List<TableColumn> _columns = [];
   bool _submitting = false;
 
@@ -92,67 +79,83 @@ class _AddColumnSheetState extends ConsumerState<AddColumnSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 640),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                RemixIcons.add_circle_line,
-                size: 18,
-                color: ShadTokens.primary,
-              ),
-              const SizedBox(width: ShadTokens.space2),
-              Expanded(
-                child: Text(
-                  '新建列 · ${widget.table}',
-                  style: const TextStyle(
-                    fontSize: ShadTokens.fontTitle,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(RemixIcons.close_line, size: 18),
-                visualDensity: VisualDensity.compact,
-              ),
-            ],
-          ),
-          const SizedBox(height: ShadTokens.space3),
-          ColumnDefsEditor(
-            allowTimeCategory: false,
-            onChanged: (cols) => _columns = cols,
-          ),
-          const SizedBox(height: ShadTokens.space4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              OutlinedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('取消'),
-              ),
-              const SizedBox(width: ShadTokens.space2),
-              FilledButton(
-                onPressed: _submitting ? null : _submit,
-                child: _submitting
-                    ? const SizedBox(
-                        width: 14,
-                        height: 14,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+    return PopScope(
+      canPop: false,
+      child: Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(ShadTokens.radiusLarge),
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              ShadTokens.space6,
+              ShadTokens.space4,
+              ShadTokens.space6,
+              ShadTokens.space6,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      RemixIcons.add_circle_line,
+                      size: 18,
+                      color: ShadTokens.primary,
+                    ),
+                    const SizedBox(width: ShadTokens.space2),
+                    Expanded(
+                      child: Text(
+                        '新建列 · ${widget.table}',
+                        style: const TextStyle(
+                          fontSize: ShadTokens.fontTitle,
+                          fontWeight: FontWeight.w600,
                         ),
-                      )
-                    : const Text('添加'),
-              ),
-            ],
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(RemixIcons.close_line, size: 18),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
+                ),
+                const Divider(height: 24),
+                ColumnDefsEditor(
+                  allowTimeCategory: false,
+                  onChanged: (cols) => _columns = cols,
+                ),
+                const SizedBox(height: ShadTokens.space4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('取消'),
+                    ),
+                    const SizedBox(width: ShadTokens.space2),
+                    FilledButton(
+                      onPressed: _submitting ? null : _submit,
+                      child: _submitting
+                          ? const SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text('添加'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

@@ -180,6 +180,14 @@ class _ColumnRowState extends State<_ColumnRow> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            '列名 *',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: ShadTokens.space2),
           Row(
             children: [
               Expanded(
@@ -187,67 +195,92 @@ class _ColumnRowState extends State<_ColumnRow> {
                   controller: _name,
                   onChanged: (_) => _emit(),
                   decoration: const InputDecoration(
-                    labelText: '列名 *',
-                    hintText: '如：temperature',
                     isDense: true,
                   ),
                 ),
               ),
               const SizedBox(width: ShadTokens.space2),
-              DropdownButton<ColumnCategory>(
-                value: _category,
-                isDense: true,
-                underline: const SizedBox.shrink(),
-                style: const TextStyle(fontSize: 13, color: ShadTokens.foreground),
-                items: [
-                  for (final c in _categories)
-                    DropdownMenuItem(value: c, child: Text(c.label)),
-                ],
-                onChanged: (c) {
-                  if (c == null) return;
-                  setState(() => _category = c);
-                  _emit();
-                },
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: ShadTokens.border),
+                  borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ShadTokens.space3,
+                  vertical: 6,
+                ),
+                child: DropdownButton<ColumnCategory>(
+                  value: _category,
+                  isDense: true,
+                  underline: const SizedBox.shrink(),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: ShadTokens.foreground,
+                  ),
+                  items: [
+                    for (final c in _categories)
+                      DropdownMenuItem(value: c, child: Text(c.label)),
+                  ],
+                  onChanged: (c) {
+                    if (c == null) return;
+                    setState(() => _category = c);
+                    _emit();
+                  },
+                ),
               ),
               const SizedBox(width: ShadTokens.space2),
               SizedBox(
-                width: 130,
+                width: 150,
                 child: fixedType
                     ? Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: ShadTokens.space2,
-                          vertical: 8,
+                          horizontal: ShadTokens.space3,
+                          vertical: 6,
                         ),
                         decoration: BoxDecoration(
                           color: ShadTokens.muted,
-                          borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+                          borderRadius: BorderRadius.circular(
+                            ShadTokens.radiusDefault,
+                          ),
                         ),
                         child: Text(
                           _effectiveType,
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 14,
                             color: ShadTokens.mutedForeground,
                           ),
                         ),
                       )
-                    : DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _fieldType,
-                          isDense: true,
-                          isExpanded: true,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: ShadTokens.foreground,
+                    : Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: ShadTokens.border),
+                          borderRadius: BorderRadius.circular(
+                            ShadTokens.radiusDefault,
                           ),
-                          items: [
-                            for (final t in tableDataTypes)
-                              DropdownMenuItem(value: t, child: Text(t)),
-                          ],
-                          onChanged: (t) {
-                            if (t == null) return;
-                            setState(() => _fieldType = t);
-                            _emit();
-                          },
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: ShadTokens.space3,
+                          vertical: 6,
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _fieldType,
+                            isDense: true,
+                            isExpanded: true,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: ShadTokens.foreground,
+                            ),
+                            items: [
+                              for (final t in tableDataTypes)
+                                DropdownMenuItem(value: t, child: Text(t)),
+                            ],
+                            onChanged: (t) {
+                              if (t == null) return;
+                              setState(() => _fieldType = t);
+                              _emit();
+                            },
+                          ),
                         ),
                       ),
               ),
@@ -264,12 +297,19 @@ class _ColumnRowState extends State<_ColumnRow> {
                 ),
             ],
           ),
+          const SizedBox(height: ShadTokens.space3),
+          const Text(
+            '列注释（可选）',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           const SizedBox(height: ShadTokens.space2),
           TextField(
             controller: _comment,
             onChanged: (_) => _emit(),
             decoration: const InputDecoration(
-              labelText: '列注释（可选）',
               isDense: true,
             ),
           ),

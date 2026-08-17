@@ -32,6 +32,7 @@ class TablePage extends ConsumerWidget {
       );
     }
     final table = ref.watch(tableSelectionProvider);
+    final creating = ref.watch(createTableModeProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -44,18 +45,87 @@ class TablePage extends ConsumerWidget {
               SizedBox(width: 280, child: _TableListPane(db: db)),
               const VerticalDivider(width: 1),
               Expanded(
-                child: table == null
-                    ? const EmptyState(
-                        icon: RemixIcons.table_line,
-                        title: '选择表查看结构',
-                        description: '左侧选择表，右侧查看其列定义（TIME/TAG/ATTRIBUTE/FIELD）',
+                child: creating
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildCreateHeader(context, ref, db),
+                          const Divider(height: 1),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: CreateTableForm(db: db),
+                            ),
+                          ),
+                        ],
                       )
-                    : _TableDetailPane(db: db, table: table),
+                    : table == null
+                        ? const EmptyState(
+                            icon: RemixIcons.table_line,
+                            title: '选择表查看结构',
+                            description: '左侧选择表，右侧查看其列定义（TIME/TAG/ATTRIBUTE/FIELD）',
+                          )
+                        : _TableDetailPane(db: db, table: table),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCreateHeader(
+    BuildContext context,
+    WidgetRef ref,
+    String db,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: ShadTokens.space4,
+        vertical: ShadTokens.space3,
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            RemixIcons.add_line,
+            size: 16,
+            color: ShadTokens.primary,
+          ),
+          const SizedBox(width: ShadTokens.space2),
+          const Text(
+            '新建表',
+            style: TextStyle(
+              fontSize: ShadTokens.fontTitle,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: ShadTokens.space2),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: ShadTokens.space2,
+              vertical: 2,
+            ),
+            decoration: BoxDecoration(
+              color: ShadTokens.muted,
+              borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+            ),
+            child: Text(
+              db,
+              style: const TextStyle(
+                fontSize: ShadTokens.fontAux,
+                color: ShadTokens.mutedForeground,
+              ),
+            ),
+          ),
+          const Spacer(),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            tooltip: '关闭',
+            onPressed: () =>
+                ref.read(createTableModeProvider.notifier).set(false),
+            icon: const Icon(RemixIcons.close_line, size: 18),
+          ),
+        ],
+      ),
     );
   }
 
@@ -104,7 +174,8 @@ class TablePage extends ConsumerWidget {
           ),
           const Spacer(),
           FilledButton.icon(
-            onPressed: () => showCreateTableSheet(context, ref, db: db),
+            onPressed: () =>
+                ref.read(createTableModeProvider.notifier).set(true),
             icon: const Icon(RemixIcons.add_line, size: 16),
             label: const Text('新建表'),
           ),
@@ -181,6 +252,9 @@ class _TableListPane extends ConsumerWidget {
                           .read(databaseSelectionProvider.notifier)
                           .select(db);
                       ref.read(tableSelectionProvider.notifier).select(t.name);
+                      ref
+                          .read(createTableModeProvider.notifier)
+                          .set(false);
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -330,7 +404,7 @@ class _TableDetailPane extends ConsumerWidget {
               const SizedBox(width: ShadTokens.space2),
               FilledButton.tonalIcon(
                 onPressed: () =>
-                    showAddColumnSheet(context, ref, db: db, table: table),
+                    showAddColumnDialog(context, ref, db: db, table: table),
                 icon: const Icon(RemixIcons.add_circle_line, size: 16),
                 label: const Text('新建列'),
               ),
