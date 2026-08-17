@@ -40,31 +40,34 @@ class _SettingsDialog extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: ShadTokens.space2),
-            SegmentedButton<ThemeMode>(
-              segments: const [
-                ButtonSegment(
-                  value: ThemeMode.light,
-                  label: Text('浅色'),
-                  icon: Icon(RemixIcons.sun_line, size: 16),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.dark,
-                  label: Text('深色'),
-                  icon: Icon(RemixIcons.moon_line, size: 16),
-                ),
-                ButtonSegment(
-                  value: ThemeMode.system,
-                  label: Text('跟随系统'),
-                  icon: Icon(RemixIcons.computer_line, size: 16),
-                ),
-              ],
-              selected: {themeMode},
-              showSelectedIcon: false,
-              onSelectionChanged: (selection) {
-                ref.read(themeModeProvider.notifier).setMode(
-                  selection.first,
-                );
-              },
+            SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<ThemeMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: ThemeMode.light,
+                    label: Text('浅色'),
+                    icon: Icon(RemixIcons.sun_line, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: ThemeMode.dark,
+                    label: Text('深色'),
+                    icon: Icon(RemixIcons.moon_line, size: 16),
+                  ),
+                  ButtonSegment(
+                    value: ThemeMode.system,
+                    label: Text('跟随系统'),
+                    icon: Icon(RemixIcons.computer_line, size: 16),
+                  ),
+                ],
+                selected: {themeMode},
+                showSelectedIcon: false,
+                onSelectionChanged: (selection) {
+                  ref.read(themeModeProvider.notifier).setMode(
+                    selection.first,
+                  );
+                },
+              ),
             ),
             const SizedBox(height: ShadTokens.space6),
             const Text(

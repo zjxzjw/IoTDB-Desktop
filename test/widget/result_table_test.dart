@@ -86,4 +86,90 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('2 / 3'), findsOneWidget);
   });
+
+  testWidgets('拖拽表头右缘可调整列宽', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: ResultTable(
+            columns: ['time', 'value'],
+            rows: [
+              [1700000000000, 1.5],
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final before = tester
+        .getSize(find.byKey(const ValueKey('result-col-0')))
+        .width;
+    await tester.drag(
+      find.byKey(const ValueKey('result-col-resize-0')),
+      const Offset(-100, 0),
+    );
+    await tester.pumpAndSettle();
+    final after = tester
+        .getSize(find.byKey(const ValueKey('result-col-0')))
+        .width;
+    expect(after, lessThan(before), reason: '拖动后列宽应缩短');
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: ResultTable(
+            columns: ['a', 'b', 'c'],
+            rows: [
+              [1, 2, 3],
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final reset = tester
+        .getSize(find.byKey(const ValueKey('result-col-0')))
+        .width;
+    expect(reset, closeTo(800 / 3, 1), reason: '列数变化后自定义列宽应重置');
+  });
+
+  testWidgets('双击表头右缘恢复自适应列宽', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: ResultTable(
+            columns: ['time', 'value'],
+            rows: [
+              [1700000000000, 1.5],
+            ],
+          ),
+        ),
+      ),
+    );
+
+    final before = tester
+        .getSize(find.byKey(const ValueKey('result-col-0')))
+        .width;
+    await tester.drag(
+      find.byKey(const ValueKey('result-col-resize-0')),
+      const Offset(-100, 0),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSize(find.byKey(const ValueKey('result-col-0'))).width,
+      lessThan(before),
+      reason: '拖动后列宽应变化',
+    );
+
+    final handle = find.byKey(const ValueKey('result-col-resize-0'));
+    await tester.tap(handle);
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(handle);
+    await tester.pumpAndSettle();
+    expect(
+      tester.getSize(find.byKey(const ValueKey('result-col-0'))).width,
+      closeTo(before, 1),
+      reason: '双击后列宽应恢复自适应',
+    );
+  });
 }

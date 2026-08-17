@@ -9,11 +9,6 @@ final dashboardVersionProvider = FutureProvider<QueryResult>((ref) {
   return ref.watch(iotdbClientProvider).query('SHOW VERSION');
 });
 
-/// 区域信息：SHOW REGIONS
-final dashboardRegionProvider = FutureProvider<QueryResult>((ref) {
-  return ref.watch(iotdbClientProvider).query('SHOW REGIONS');
-});
-
 /// 表总数：遍历各库 SHOW TABLES FROM `<db>` 求和（跳过系统库与失败项）
 final dashboardTableCountProvider = FutureProvider<int>((ref) async {
   final client = ref.watch(iotdbClientProvider);

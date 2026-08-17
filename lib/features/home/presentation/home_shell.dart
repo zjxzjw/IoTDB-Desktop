@@ -383,6 +383,52 @@ class WorkspaceScreen extends ConsumerWidget {
             ],
           ),
           actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: ShadTokens.space3),
+              child: SegmentedButton<WorkspacePage>(
+                showSelectedIcon: false,
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: WidgetStatePropertyAll(
+                    EdgeInsets.symmetric(horizontal: 8),
+                  ),
+                ),
+                segments: const [
+                  ButtonSegment(
+                    value: WorkspacePage.dashboard,
+                    icon: Icon(RemixIcons.speed_up_line, size: 16),
+                    tooltip: '仪表盘',
+                  ),
+                  ButtonSegment(
+                    value: WorkspacePage.sql,
+                    icon: Icon(RemixIcons.terminal_line, size: 16),
+                    tooltip: 'SQL 工作台',
+                  ),
+                  ButtonSegment(
+                    value: WorkspacePage.tables,
+                    icon: Icon(RemixIcons.table_line, size: 16),
+                    tooltip: '表管理',
+                  ),
+                  ButtonSegment(
+                    value: WorkspacePage.users,
+                    icon: Icon(RemixIcons.group_line, size: 16),
+                    tooltip: '用户与权限',
+                  ),
+                  ButtonSegment(
+                    value: WorkspacePage.data,
+                    icon: Icon(RemixIcons.line_chart_line, size: 16),
+                    tooltip: '数据浏览',
+                  ),
+                ],
+                selected: {page},
+                onSelectionChanged: (selection) => ref
+                    .read(workspacePageProvider.notifier)
+                    .select(selection.first),
+              ),
+            ),
+            Container(width: 1, height: 24, color: ShadTokens.divider),
+            const SizedBox(width: ShadTokens.space1),
             IconButton(
               visualDensity: VisualDensity.compact,
               tooltip: '新建数据库',
@@ -455,52 +501,7 @@ class WorkspaceScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            Container(width: 1, height: 24, color: ShadTokens.divider),
-            const SizedBox(width: ShadTokens.space1),
-            Padding(
-              padding: const EdgeInsets.only(right: ShadTokens.space3),
-              child: SegmentedButton<WorkspacePage>(
-                showSelectedIcon: false,
-                style: const ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  padding: WidgetStatePropertyAll(
-                    EdgeInsets.symmetric(horizontal: 8),
-                  ),
-                ),
-                segments: const [
-                  ButtonSegment(
-                    value: WorkspacePage.dashboard,
-                    icon: Icon(RemixIcons.speed_up_line, size: 16),
-                    tooltip: '仪表盘',
-                  ),
-                  ButtonSegment(
-                    value: WorkspacePage.sql,
-                    icon: Icon(RemixIcons.terminal_line, size: 16),
-                    tooltip: 'SQL 工作台',
-                  ),
-                  ButtonSegment(
-                    value: WorkspacePage.tables,
-                    icon: Icon(RemixIcons.database_2_line, size: 16),
-                    tooltip: '表管理',
-                  ),
-                  ButtonSegment(
-                    value: WorkspacePage.users,
-                    icon: Icon(RemixIcons.user_line, size: 16),
-                    tooltip: '用户与权限',
-                  ),
-                  ButtonSegment(
-                    value: WorkspacePage.data,
-                    icon: Icon(RemixIcons.table_line, size: 16),
-                    tooltip: '数据浏览',
-                  ),
-                ],
-                selected: {page},
-                onSelectionChanged: (selection) => ref
-                    .read(workspacePageProvider.notifier)
-                    .select(selection.first),
-              ),
-            ),
+            const SizedBox(width: ShadTokens.space3),
           ],
         ),
         body: switch (page) {

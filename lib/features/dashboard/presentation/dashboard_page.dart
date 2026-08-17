@@ -13,7 +13,6 @@ class DashboardPage extends ConsumerWidget {
 
   void _refresh(WidgetRef ref) {
     ref.invalidate(dashboardVersionProvider);
-    ref.invalidate(dashboardRegionProvider);
     ref.invalidate(dashboardTableCountProvider);
     ref.invalidate(dashboardClusterProvider);
     ref.invalidate(dashboardLatencyProvider);
@@ -64,7 +63,7 @@ class DashboardPage extends ConsumerWidget {
               LayoutBuilder(
                 builder: (context, constraints) {
                   const spacing = ShadTokens.space3;
-                  final cardWidth = (constraints.maxWidth - spacing * 4) / 5;
+                  final cardWidth = (constraints.maxWidth - spacing * 3) / 4;
                   return Wrap(
                     spacing: spacing,
                     runSpacing: spacing,
@@ -91,13 +90,6 @@ class DashboardPage extends ConsumerWidget {
                         title: '表总数',
                         icon: RemixIcons.table_line,
                         result: ref.watch(dashboardTableCountProvider),
-                      ),
-                      _StatCard(
-                        width: cardWidth,
-                        title: '区域数量',
-                        icon: RemixIcons.server_line,
-                        result: ref.watch(dashboardRegionProvider),
-                        valueOf: (r) => '${r.rows.length}',
                       ),
                       _StatusCard(width: cardWidth),
                     ],

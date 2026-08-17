@@ -52,7 +52,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
   @override
   void initState() {
     super.initState();
-    _tabs.add(_SqlTab('查询 1'));
+    _tabs.add(_SqlTab('SQL编辑器 1'));
     _active = 0;
     if (widget.initialSql != null && widget.initialSql!.isNotEmpty) {
       _tabs.last.controller.text = widget.initialSql!;
@@ -69,7 +69,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
 
   void _addTab() {
     setState(() {
-      _tabs.add(_SqlTab('查询 ${_tabs.length + 1}'));
+      _tabs.add(_SqlTab('SQL编辑器 ${_tabs.length + 1}'));
       _active = _tabs.length - 1;
     });
   }
