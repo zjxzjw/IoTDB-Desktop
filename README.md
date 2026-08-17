@@ -2,9 +2,9 @@
   <img src="lib/assets/logo_dock.png" width="120" height="120" alt="IoTDB Desktop Logo">
 </p>
 
+<h1 align="center">Apache IoTDB 桌面端管理工具</h1><br/>
 <p align="center">
-  <h1 align="center">Apache IoTDB 桌面端管理工具</h1><br/>
- <span> 基于 Flutter 构建，支持 macOS / Windows，提供数据库、表、数据、SQL 与权限的一站式可视化运维体验</span>
+基于 Flutter 构建，支持 macOS / Windows，提供数据库、表、数据、SQL 与权限的一站式可视化运维体验
 </p>
 
 [Apache IoTDB](https://iotdb.apache.org/) 是 Apache 软件基金会顶级项目，面向物联网场景的高性能时序数据库，支持海量时序数据的高吞吐写入、低延迟查询与高效压缩。本工具是 IoTDB 的桌面管理客户端，通过 IoTDB REST API v2（表模型）与服务器交互，将常用的运维操作图形化、可视化。
