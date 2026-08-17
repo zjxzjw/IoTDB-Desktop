@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
+import 'package:iotdb_desktop/core/theme/shadcn_tokens.dart';
 import 'package:iotdb_desktop/shared/result_table.dart';
 
 void main() {
@@ -171,5 +172,59 @@ void main() {
       closeTo(before, 1),
       reason: '双击后列宽应恢复自适应',
     );
+  });
+
+  testWidgets('列宽超过视口时可横向滚动', (tester) async {
+    final columns = [for (var i = 0; i < 12; i++) 'col$i'];
+    final rows = [
+      for (var r = 0; r < 20; r++) [for (var i = 0; i < 12; i++) 'r${r}c$i'],
+    ];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 400,
+            child: ResultTable(columns: columns, rows: rows),
+          ),
+        ),
+      ),
+    );
+
+    final scrollables = find.byType(Scrollable);
+    final hPosition = tester.state<ScrollableState>(scrollables.first).position;
+    expect(hPosition.axis, Axis.horizontal, reason: '外层应为横向滚动');
+    expect(hPosition.maxScrollExtent, greaterThan(0), reason: '内容超过视口应可横向滚动');
+    expect(find.byType(Scrollbar), findsWidgets, reason: '应提供可见滚动条');
+  });
+
+  testWidgets('表头与表体单元格带垂直分割线', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: ResultTable(
+            columns: ['a', 'b'],
+            rows: [
+              ['x', 'y'],
+            ],
+          ),
+        ),
+      ),
+    );
+    BoxDecoration? cellDecoration(Widget keyWidget) {
+      final container = tester.widget<Container>(
+        find
+            .ancestor(of: find.byWidget(keyWidget), matching: find.byType(Container))
+            .first,
+      );
+      return container.decoration as BoxDecoration?;
+    }
+
+    final headerCell = tester.widget(find.byKey(const ValueKey('result-col-0')));
+    final headerDeco = cellDecoration(headerCell);
+    expect(headerDeco, isNotNull, reason: '表头单元格应带边框装饰');
+    final headerBorder = headerDeco!.border as Border?;
+    expect(headerBorder, isNotNull, reason: '表头单元格应有边框');
+    expect(headerBorder!.right, isA<BorderSide>(), reason: '表头单元格右缘应有分割线');
+    expect(headerBorder.right.color, ShadTokens.divider);
   });
 }

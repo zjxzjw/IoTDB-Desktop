@@ -6,35 +6,57 @@ import '../../../core/providers.dart';
 import '../../../core/theme/shadcn_tokens.dart';
 import '../../../core/utils/sql_builder.dart';
 
-/// 建库表单（ModalBottomSheet）：2.0.10 仅支持 4 个建库参数
-Future<void> showCreateDatabaseSheet(BuildContext context, WidgetRef ref) {
-  return showModalBottomSheet(
+/// 建库表单（居中 Dialog）：2.0.10 仅支持 4 个建库参数
+Future<void> showCreateDatabaseDialog(BuildContext context, WidgetRef ref) {
+  return showGeneralDialog(
     context: context,
-    isScrollControlled: true,
-    backgroundColor: ShadTokens.card,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(ShadTokens.radiusLarge)),
-    ),
-    builder: (context) => Padding(
-      padding: EdgeInsets.only(
-        left: ShadTokens.space6,
-        right: ShadTokens.space6,
-        top: ShadTokens.space4,
-        bottom: MediaQuery.of(context).viewInsets.bottom + ShadTokens.space6,
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black54,
+    transitionDuration: const Duration(milliseconds: 220),
+    pageBuilder: (context, animation, secondaryAnimation) => Dialog(
+      backgroundColor: ShadTokens.card,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(ShadTokens.radiusLarge),
       ),
-      child: const CreateDatabaseSheet(),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(
+          horizontal: ShadTokens.space6,
+          vertical: ShadTokens.space4,
+        ),
+        child: const CreateDatabaseDialog(),
+      ),
     ),
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutBack,
+        reverseCurve: Curves.easeIn,
+      );
+      return ScaleTransition(
+        scale: Tween<double>(begin: 0.85, end: 1.0).animate(curved),
+        child: FadeTransition(
+          opacity: CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOut,
+            reverseCurve: Curves.easeIn,
+          ),
+          child: child,
+        ),
+      );
+    },
   );
 }
 
-class CreateDatabaseSheet extends ConsumerStatefulWidget {
-  const CreateDatabaseSheet({super.key});
+class CreateDatabaseDialog extends ConsumerStatefulWidget {
+  const CreateDatabaseDialog({super.key});
 
   @override
-  ConsumerState<CreateDatabaseSheet> createState() => _CreateDatabaseSheetState();
+  ConsumerState<CreateDatabaseDialog> createState() =>
+      _CreateDatabaseDialogState();
 }
 
-class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
+class _CreateDatabaseDialogState extends ConsumerState<CreateDatabaseDialog> {
   final _formKey = GlobalKey<FormState>();
   final _name = TextEditingController();
   final _ttl = TextEditingController();
@@ -94,47 +116,68 @@ class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
-      child: SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  const Icon(RemixIcons.database_2_line, size: 18, color: ShadTokens.primary),
-                  const SizedBox(width: ShadTokens.space2),
-                  const Text('新建数据库', style: TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600)),
-                  const Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(RemixIcons.close_line, size: 18),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ],
-              ),
-              const SizedBox(height: ShadTokens.space3),
-              TextFormField(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                const Icon(RemixIcons.database_2_line, size: 18, color: ShadTokens.primary),
+                const SizedBox(width: ShadTokens.space2),
+                const Text('新建数据库', style: TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600)),
+                const Spacer(),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(RemixIcons.close_line, size: 18),
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+            const SizedBox(height: ShadTokens.space4),
+            _LabeledField(
+              label: '数据库名 *',
+              child: TextFormField(
                 controller: _name,
-                decoration: const InputDecoration(labelText: '数据库名 *', hintText: '如：root.test 或 test'),
+                style: const TextStyle(fontSize: 13),
+                decoration: const InputDecoration(
+                  filled: false,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: ShadTokens.space3,
+                    vertical: 12,
+                  ),
+                ),
                 validator: (v) => (v == null || v.trim().isEmpty) ? '请输入数据库名' : null,
               ),
-              const SizedBox(height: ShadTokens.space3),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('设置 TTL', style: TextStyle(fontSize: 13)),
-                value: _enableTtl,
-                onChanged: (v) => setState(() => _enableTtl = v ?? false),
-              ),
-              if (_enableTtl) ...[
-                Row(
-                  children: [
-                    Expanded(
+            ),
+            const SizedBox(height: ShadTokens.space4),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('设置 TTL', style: TextStyle(fontSize: 13)),
+              value: _enableTtl,
+              onChanged: (v) => setState(() => _enableTtl = v ?? false),
+            ),
+            if (_enableTtl) ...[
+              const SizedBox(height: ShadTokens.space2),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: _LabeledField(
+                      label: 'TTL（毫秒）',
                       child: TextFormField(
                         controller: _ttl,
                         enabled: !_ttlInfinite,
-                        decoration: const InputDecoration(labelText: 'TTL（毫秒）', hintText: '如：604800000'),
+                        style: const TextStyle(fontSize: 13),
+                        decoration: InputDecoration(
+                          filled: false,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: ShadTokens.space3,
+                            vertical: 12,
+                          ),
+                          hintText: '如：604800000',
+                        ),
                         keyboardType: TextInputType.number,
                         validator: (v) {
                           if (_ttlInfinite) return null;
@@ -143,69 +186,130 @@ class _CreateDatabaseSheetState extends ConsumerState<CreateDatabaseSheet> {
                         },
                       ),
                     ),
-                    const SizedBox(width: ShadTokens.space2),
-                    const Text('或', style: TextStyle(fontSize: 12, color: ShadTokens.mutedForeground)),
-                    const SizedBox(width: ShadTokens.space2),
-                    FilledButton.tonal(
-                      onPressed: () => setState(() => _ttlInfinite = !_ttlInfinite),
-                      child: Text(_ttlInfinite ? 'INF（永久）' : 'INF'),
+                  ),
+                  const SizedBox(width: ShadTokens.space4),
+                  _LabeledField(
+                    label: '保存时长',
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: FilledButton.tonal(
+                        onPressed: () => setState(() => _ttlInfinite = !_ttlInfinite),
+                        child: Text(_ttlInfinite ? 'INF（永久）' : 'INF'),
+                      ),
                     ),
-                  ],
-                ),
-              ],
-              const SizedBox(height: ShadTokens.space3),
-              TextFormField(
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: ShadTokens.space4),
+            _LabeledField(
+              label: '时间分区间隔（毫秒，可选）',
+              child: TextFormField(
                 controller: _partition,
-                decoration: const InputDecoration(
-                  labelText: 'TIME_PARTITION_INTERVAL（毫秒，可选）',
+                style: const TextStyle(fontSize: 13),
+                decoration: InputDecoration(
+                  filled: false,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: ShadTokens.space3,
+                    vertical: 12,
+                  ),
                   hintText: '如：86400000',
                 ),
                 keyboardType: TextInputType.number,
                 validator: (v) => _optionalPositiveInt(v, '分区间隔'),
               ),
-              const SizedBox(height: ShadTokens.space3),
-              Row(
-                children: [
-                  Expanded(
+            ),
+            const SizedBox(height: ShadTokens.space4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _LabeledField(
+                    label: 'Schema 区域组数（可选）',
                     child: TextFormField(
                       controller: _schemaGroup,
-                      decoration: const InputDecoration(labelText: 'SCHEMA_REGION_GROUP_NUM（可选）'),
+                      style: const TextStyle(fontSize: 13),
+                      decoration: InputDecoration(
+                        filled: false,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: ShadTokens.space3,
+                          vertical: 12,
+                        ),
+                      ),
                       keyboardType: TextInputType.number,
                       validator: (v) => _optionalPositiveInt(v, 'Schema 组数'),
                     ),
                   ),
-                  const SizedBox(width: ShadTokens.space3),
-                  Expanded(
+                ),
+                const SizedBox(width: ShadTokens.space4),
+                Expanded(
+                  child: _LabeledField(
+                    label: 'Data 区域组数（可选）',
                     child: TextFormField(
                       controller: _dataGroup,
-                      decoration: const InputDecoration(labelText: 'DATA_REGION_GROUP_NUM（可选）'),
+                      style: const TextStyle(fontSize: 13),
+                      decoration: InputDecoration(
+                        filled: false,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: ShadTokens.space3,
+                          vertical: 12,
+                        ),
+                      ),
                       keyboardType: TextInputType.number,
                       validator: (v) => _optionalPositiveInt(v, 'Data 组数'),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: ShadTokens.space4),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('取消'),
-                  ),
-                  const SizedBox(width: ShadTokens.space2),
-                  FilledButton(
-                    onPressed: _submitting ? null : _submit,
-                    child: _submitting
-                        ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('创建'),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+            const SizedBox(height: ShadTokens.space8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('取消'),
+                ),
+                const SizedBox(width: ShadTokens.space2),
+                FilledButton(
+                  onPressed: _submitting ? null : _submit,
+                  child: _submitting
+                      ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('创建'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+/// 标签在输入框上方的表单字段
+class _LabeledField extends StatelessWidget {
+  final String label;
+  final Widget child;
+
+  const _LabeledField({required this.label, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: ShadTokens.fontAux,
+            fontWeight: FontWeight.w500,
+            color: ShadTokens.mutedForeground,
+          ),
+        ),
+        const SizedBox(height: ShadTokens.space3),
+        child,
+      ],
     );
   }
 }

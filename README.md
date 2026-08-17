@@ -22,20 +22,25 @@
 - **设置** — 浅色 / 深色 / 跟随系统三种主题模式；侧边栏宽度拖拽调节并可重置
 
 ## 运行效果
-<p>
-![img.png](image/1.png)
+
+<p align="center">
+  <img src="image/1.png" width="800" alt="运行效果图 1">
 </p>
-<p>
-![img.png](image/2.png)
+
+<p align="center">
+  <img src="image/2.png" width="800" alt="运行效果图 2">
 </p>
-<p>
-![img.png](image/3.png)
+
+<p align="center">
+  <img src="image/3.png" width="800" alt="运行效果图 3">
 </p>
-<p>
-![img.png](image/4.png)
+
+<p align="center">
+  <img src="image/4.png" width="800" alt="运行效果图 4">
 </p>
-<p>
-![img.png](image/5.png)
+
+<p align="center">
+  <img src="image/5.png" width="800" alt="运行效果图 5">
 </p>
 
 ## 技术栈

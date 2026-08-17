@@ -9,7 +9,8 @@ import 'empty_state.dart';
 /// 通用结果表格：铺满宽度 + 固定表头 + 分页 + Time 列格式化 + 底部统计
 ///
 /// 手写实现：表头行固定在顶部（不随纵向滚动），正文独立纵向滚动；
-/// 列宽 = max(最小宽, 视口宽/列数)，列少时铺满、列多时横向滚动（表头与正文同宽对齐）。
+/// 列宽 = max(最小宽, 视口宽/列数)，列少时铺满、列多时横向滚动（表头与正文同宽对齐）；
+/// 横向/纵向均带可见滚动条，列间带垂直分割线。
 /// 拖拽表头右缘可调整列宽，双击重置为自适应宽度。
 class ResultTable extends StatefulWidget {
   final List<String> columns;
@@ -37,6 +38,9 @@ class _ResultTableState extends State<ResultTable> {
 
   int _page = 0;
 
+  final ScrollController _hScroll = ScrollController();
+  final ScrollController _vScroll = ScrollController();
+
   /// 每列自定义宽度，null 表示跟随默认自适应宽度
   late List<double?> _customWidths;
 
@@ -44,6 +48,13 @@ class _ResultTableState extends State<ResultTable> {
   void initState() {
     super.initState();
     _customWidths = List<double?>.filled(widget.columns.length, null);
+  }
+
+  @override
+  void dispose() {
+    _hScroll.dispose();
+    _vScroll.dispose();
+    super.dispose();
   }
 
   @override
@@ -96,25 +107,34 @@ class _ResultTableState extends State<ResultTable> {
                   for (var i = 0; i < colCount; i++)
                     _customWidths[i] ?? baseWidth,
                 ];
-                return SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minWidth: viewport),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHeader(widths),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            child: Column(
-                              children: [
-                                for (final row in pageRows)
-                                  _buildRow(row, widths),
-                              ],
+                return Scrollbar(
+                  controller: _hScroll,
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    controller: _hScroll,
+                    scrollDirection: Axis.horizontal,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(minWidth: viewport),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildHeader(widths),
+                          Expanded(
+                            child: Scrollbar(
+                              controller: _vScroll,
+                              child: SingleChildScrollView(
+                                controller: _vScroll,
+                                child: Column(
+                                  children: [
+                                    for (final row in pageRows)
+                                      _buildRow(row, widths),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -133,53 +153,58 @@ class _ResultTableState extends State<ResultTable> {
       child: Row(
         children: [
           for (var i = 0; i < widget.columns.length; i++)
-            SizedBox(
-              key: ValueKey('result-col-$i'),
-              width: widths[i],
-              child: Stack(
-                alignment: Alignment.centerLeft,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: ShadTokens.space2,
-                      vertical: 8,
-                    ),
-                    child: Text(
-                      widget.columns[i],
-                      style: const TextStyle(
-                        fontSize: ShadTokens.fontBody,
-                        fontWeight: FontWeight.w600,
+            Container(
+              decoration: BoxDecoration(
+                border: Border(right: BorderSide(color: ShadTokens.divider)),
+              ),
+              child: SizedBox(
+                key: ValueKey('result-col-$i'),
+                width: widths[i],
+                child: Stack(
+                  alignment: Alignment.centerLeft,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: ShadTokens.space2,
+                        vertical: 8,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: _handleWidth,
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.resizeColumn,
-                      child: GestureDetector(
-                        key: ValueKey('result-col-resize-$i'),
-                        behavior: HitTestBehavior.opaque,
-                        onHorizontalDragUpdate: (d) {
-                          setState(() {
-                            _customWidths[i] = ((_customWidths[i] ??
-                                        widths[i]) +
-                                    d.delta.dx)
-                                .clamp(_minResizeWidth, double.infinity)
-                                .toDouble();
-                          });
-                        },
-                        onDoubleTap: () {
-                          setState(() => _customWidths[i] = null);
-                        },
+                      child: Text(
+                        widget.columns[i],
+                        style: const TextStyle(
+                          fontSize: ShadTokens.fontBody,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: _handleWidth,
+                      child: MouseRegion(
+                        cursor: SystemMouseCursors.resizeColumn,
+                        child: GestureDetector(
+                          key: ValueKey('result-col-resize-$i'),
+                          behavior: HitTestBehavior.opaque,
+                          onHorizontalDragUpdate: (d) {
+                            setState(() {
+                              _customWidths[i] = ((_customWidths[i] ??
+                                          widths[i]) +
+                                      d.delta.dx)
+                                  .clamp(_minResizeWidth, double.infinity)
+                                  .toDouble();
+                            });
+                          },
+                          onDoubleTap: () {
+                            setState(() => _customWidths[i] = null);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
@@ -195,23 +220,28 @@ class _ResultTableState extends State<ResultTable> {
       child: Row(
         children: [
           for (var i = 0; i < widget.columns.length; i++)
-            SizedBox(
-              width: widths[i],
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: ShadTokens.space2,
-                  vertical: 6,
-                ),
-                child: Text(
-                  i < row.length ? _format(i, row[i]) : '',
-                  style: TextStyle(
-                    fontSize: ShadTokens.fontBody,
-                    color: i < row.length && row[i] == null
-                        ? ShadTokens.placeholder
-                        : ShadTokens.foreground,
+            Container(
+              decoration: BoxDecoration(
+                border: Border(right: BorderSide(color: ShadTokens.divider)),
+              ),
+              child: SizedBox(
+                width: widths[i],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ShadTokens.space2,
+                    vertical: 6,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  child: Text(
+                    i < row.length ? _format(i, row[i]) : '',
+                    style: TextStyle(
+                      fontSize: ShadTokens.fontBody,
+                      color: i < row.length && row[i] == null
+                          ? ShadTokens.placeholder
+                          : ShadTokens.foreground,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
             ),

@@ -432,7 +432,7 @@ class WorkspaceScreen extends ConsumerWidget {
             IconButton(
               visualDensity: VisualDensity.compact,
               tooltip: '新建数据库',
-              onPressed: () => showCreateDatabaseSheet(context, ref),
+              onPressed: () => showCreateDatabaseDialog(context, ref),
               icon: const Icon(
                 RemixIcons.play_list_add_line,
                 size: 18,

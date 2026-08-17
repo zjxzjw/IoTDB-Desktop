@@ -4,14 +4,18 @@ import 'package:re_editor/re_editor.dart';
 import 'package:remixicon/remixicon.dart';
 
 import '../../../core/models/sql_run_result.dart';
+import '../../../core/models/table_meta.dart';
 import '../../../core/network/statement_router.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/shadcn_tokens.dart';
+import '../../database/data/database_providers.dart';
 import '../data/sql_history_provider.dart';
+import '../data/sql_workbench_provider.dart';
 import 'result_panel.dart';
+import 'sql_autocomplete.dart';
 import 'sql_editor.dart';
 
-/// SQL 工作台：多标签编辑器（上半） + 执行结果（下半，可拖拽调整高度）
+/// SQL 工作台：SQL 编辑器（上半） + 执行结果（下半，可拖拽调整高度）
 class SqlWorkbenchPage extends ConsumerStatefulWidget {
   final String? initialSql;
 
@@ -21,80 +25,75 @@ class SqlWorkbenchPage extends ConsumerStatefulWidget {
   ConsumerState<SqlWorkbenchPage> createState() => _SqlWorkbenchPageState();
 }
 
-class _SqlTab {
-  final String title;
-  final CodeLineEditingController controller;
-  final FocusNode focusNode;
-  List<SqlRunResult> results = [];
-
-  _SqlTab(this.title)
-      : controller = CodeLineEditingController(),
-        focusNode = FocusNode();
-
-  void dispose() {
-    controller.dispose();
-    focusNode.dispose();
-  }
-}
-
 class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
   static const double _minEditorHeight = 120;
   static const double _minResultsHeight = 120;
 
-  final List<_SqlTab> _tabs = [];
-  int _active = -1;
+  final CodeLineEditingController _controller = CodeLineEditingController();
+  final FocusNode _focusNode = FocusNode();
 
-  /// 编辑器占整体高度的比例（拖拽分割条调整）
-  double _editorRatio = 0.45;
+  /// 当前是否有非空选中文本（驱动运行按钮文字：运行/运行选中）
+  bool _hasSelection = false;
 
-  _SqlTab? get _current => _active >= 0 && _active < _tabs.length ? _tabs[_active] : null;
+  String get _connId => ref.read(activeConnectionProvider)?.id ?? '';
 
   @override
   void initState() {
     super.initState();
-    _tabs.add(_SqlTab('SQL编辑器 1'));
-    _active = 0;
-    if (widget.initialSql != null && widget.initialSql!.isNotEmpty) {
-      _tabs.last.controller.text = widget.initialSql!;
+    final ws = ref.read(sqlWorkbenchProvider(_connId));
+    if (ws.sqlText.isNotEmpty) {
+      _controller.text = ws.sqlText;
+    } else if (widget.initialSql != null && widget.initialSql!.isNotEmpty) {
+      _controller.text = widget.initialSql!;
     }
+    _controller.addListener(_onTextChanged);
+    _controller.addListener(_onSelectionChanged);
+  }
+
+  void _onSelectionChanged() {
+    final has = _controller.selectedText.trim().isNotEmpty;
+    if (has == _hasSelection) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (has != _hasSelection) setState(() => _hasSelection = has);
+    });
+  }
+
+  void _onTextChanged() {
+    // re_editor 在聚焦/重建时会把 controller 内部表示重写为带前导空行的形式，
+    // 捕获时做 trim 归一化，避免把多余的空白行持久化（SQL 对首尾空白不敏感）。
+    final text = _controller.text.trim();
+    if (ref.read(sqlWorkbenchProvider(_connId)).sqlText == text) return;
+    // re_editor 在 initState/build 期间也会触发 controller 通知，
+    // 需延迟到帧末再写回 provider，避免在 widget 构建阶段修改状态。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(sqlWorkbenchProvider(_connId).notifier).setSqlText(text);
+    });
   }
 
   @override
   void dispose() {
-    for (final t in _tabs) {
-      t.dispose();
-    }
+    _controller.removeListener(_onTextChanged);
+    _controller.removeListener(_onSelectionChanged);
+    _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
-  void _addTab() {
-    setState(() {
-      _tabs.add(_SqlTab('SQL编辑器 ${_tabs.length + 1}'));
-      _active = _tabs.length - 1;
-    });
-  }
-
-  void _closeTab(int index) {
-    if (_tabs.length == 1) return;
-    final tab = _tabs.removeAt(index);
-    tab.dispose();
-    if (_active >= _tabs.length) _active = _tabs.length - 1;
-    if (index < _active) _active--;
-    setState(() {});
-  }
-
   void _onResizeDrag(double dy, double total) {
-    setState(() {
-      final maxEditor = (total - _minResultsHeight).clamp(
-        _minEditorHeight.toDouble(),
-        double.infinity,
-      );
-      final newHeight = (total * _editorRatio + dy).clamp(
-        _minEditorHeight.toDouble(),
-        maxEditor,
-      );
-      _editorRatio = newHeight / total;
-    });
+    final maxEditor = (total - _minResultsHeight).clamp(
+      _minEditorHeight.toDouble(),
+      double.infinity,
+    );
+    final ratio = ref.read(sqlWorkbenchProvider(_connId)).editorRatio;
+    final newHeight = (total * ratio + dy).clamp(
+      _minEditorHeight.toDouble(),
+      maxEditor,
+    );
+    ref
+        .read(sqlWorkbenchProvider(_connId).notifier)
+        .setEditorRatio(newHeight / total);
   }
 
   /// 按 ; 拆分语句（简单处理：忽略空段与纯注释段）
@@ -112,15 +111,17 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
   }
 
   Future<void> _run() async {
-    final tab = _current;
-    if (tab == null) return;
-    final sql = tab.controller.text.trim();
+    // 有选中时只执行选中文本，否则执行全部
+    final selected = _controller.selectedText.trim();
+    final sql = selected.isNotEmpty ? selected : _controller.text.trim();
     if (sql.isEmpty) return;
     final client = ref.read(iotdbClientProvider);
     final conn = ref.read(activeConnectionProvider);
 
     final statements = _splitStatements(sql);
-    setState(() => tab.results = [const SqlRunResult.running()]);
+    ref
+        .read(sqlWorkbenchProvider(_connId).notifier)
+        .setResults(const [SqlRunResult.running()]);
     final results = <SqlRunResult>[];
     final sw = Stopwatch()..start();
     var success = true;
@@ -147,9 +148,9 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
       elapsedMs: sw.elapsedMilliseconds,
     ));
     if (!mounted) return;
-    setState(() => tab.results = results);
-    if (tab.focusNode.hasFocus || tab.focusNode.canRequestFocus) {
-      tab.focusNode.requestFocus();
+    ref.read(sqlWorkbenchProvider(_connId).notifier).setResults(results);
+    if (_focusNode.hasFocus || _focusNode.canRequestFocus) {
+      _focusNode.requestFocus();
     }
   }
 
@@ -216,10 +217,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
                                 style: const TextStyle(fontSize: 11, color: ShadTokens.placeholder),
                               ),
                               onTap: () {
-                                final tab = _current;
-                                if (tab != null) {
-                                  tab.controller.text = e.sql;
-                                }
+                                _controller.text = e.sql;
                                 Navigator.pop(ctx);
                               },
                             );
@@ -237,45 +235,73 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
   @override
   Widget build(BuildContext context) {
     final currentDb = ref.watch(databaseSelectionProvider);
-    final current = _current;
+    final ws = ref.watch(sqlWorkbenchProvider(_connId));
+    final acData = _buildAutocompleteData(currentDb);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _buildTabBar(currentDb),
         Expanded(
-          child: current == null
-              ? const SizedBox.shrink()
-              : LayoutBuilder(
-                  builder: (context, constraints) {
-                    final total = constraints.maxHeight;
-                    final maxEditor = (total - _minResultsHeight).clamp(
-                      _minEditorHeight.toDouble(),
-                      double.infinity,
-                    );
-                    final editorHeight = (total * _editorRatio).clamp(
-                      _minEditorHeight.toDouble(),
-                      maxEditor,
-                    );
-                    return Column(
-                      children: [
-                        SizedBox(
-                          height: editorHeight,
-                          child: SqlEditor(
-                            controller: current.controller,
-                            focusNode: current.focusNode,
-                            onRun: _run,
-                          ),
-                        ),
-                        _SqlSplitHandle(onDrag: (dy) => _onResizeDrag(dy, total)),
-                        Expanded(
-                          child: ResultPanel(results: current.results),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final total = constraints.maxHeight;
+              final maxEditor = (total - _minResultsHeight).clamp(
+                _minEditorHeight.toDouble(),
+                double.infinity,
+              );
+              final editorHeight = (total * ws.editorRatio).clamp(
+                _minEditorHeight.toDouble(),
+                maxEditor,
+              );
+              return Column(
+                children: [
+                  SizedBox(
+                    height: editorHeight,
+                    child: SqlEditor(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      onRun: _run,
+                      autocompleteData: acData,
+                    ),
+                  ),
+                  _SqlSplitHandle(onDrag: (dy) => _onResizeDrag(dy, total)),
+                  Expanded(
+                    child: ResultPanel(results: ws.results),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ],
+    );
+  }
+
+  /// 组装补全元数据：当前库的表列表 + 各表列（Riverpod 缓存 DESC 调用）
+  SqlAutocompleteData? _buildAutocompleteData(String? currentDb) {
+    if (currentDb == null || ref.read(activeConnectionProvider) == null) {
+      return null;
+    }
+    final tableResult = ref.watch(tableListProvider(currentDb));
+    final tableQuery = tableResult.value;
+    if (tableQuery == null) return null;
+
+    final tables = parseTables(tableQuery, currentDb);
+    final names = [for (final m in tables) m.name];
+    final columnsByTable = <String, List<TableColumn>>{};
+    for (final m in tables) {
+      final cols = ref
+          .watch(columnListProvider(TableRef(currentDb, m.name)))
+          .value;
+      if (cols != null) {
+        columnsByTable[m.name] = parseColumns(cols);
+      }
+    }
+    return SqlAutocompleteData(
+      db: currentDb,
+      keywords: SqlKeywords.all,
+      tables: names,
+      columnsByTable: columnsByTable,
     );
   }
 
@@ -321,21 +347,17 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
               ),
             ),
           ),
-          Expanded(
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                for (var i = 0; i < _tabs.length; i++)
-                  _buildTabItem(i),
-              ],
+          const Padding(
+            padding: EdgeInsets.only(left: ShadTokens.space3),
+            child: Text(
+              'SQL编辑器',
+              style: TextStyle(
+                fontSize: ShadTokens.fontBody,
+                color: ShadTokens.mutedForeground,
+              ),
             ),
           ),
-          IconButton(
-            visualDensity: VisualDensity.compact,
-            tooltip: '新建查询',
-            onPressed: _addTab,
-            icon: const Icon(RemixIcons.add_line, size: 18, color: ShadTokens.primary),
-          ),
+          const Spacer(),
           IconButton(
             visualDensity: VisualDensity.compact,
             tooltip: '执行历史',
@@ -346,44 +368,10 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
           FilledButton.icon(
             onPressed: _run,
             icon: const Icon(RemixIcons.arrow_right_s_line, size: 16),
-            label: const Text('运行'),
+            label: Text(_hasSelection ? '运行选中' : '运行'),
           ),
           const SizedBox(width: ShadTokens.space3),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTabItem(int index) {
-    final tab = _tabs[index];
-    final selected = index == _active;
-    return InkWell(
-      onTap: () => setState(() => _active = index),
-      child: Container(
-        padding: const EdgeInsets.only(left: ShadTokens.space3),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: selected ? Theme.of(context).colorScheme.primary : Colors.transparent, width: 2)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              tab.title,
-              style: TextStyle(
-                fontSize: ShadTokens.fontBody,
-                color: selected ? Theme.of(context).colorScheme.primary : ShadTokens.mutedForeground,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
-            if (_tabs.length > 1)
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                iconSize: 14,
-                onPressed: () => _closeTab(index),
-                icon: const Icon(RemixIcons.close_line),
-              ),
-          ],
-        ),
       ),
     );
   }

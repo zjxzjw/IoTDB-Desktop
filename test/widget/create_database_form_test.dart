@@ -5,8 +5,11 @@ import 'package:iotdb_desktop/features/database/presentation/create_database_for
 import '../helpers/fake_iotdb_client.dart';
 import '../helpers/pump.dart';
 
-Finder fieldWithLabel(String label) => find.byWidgetPredicate(
-  (w) => w is TextField && w.decoration?.labelText == label,
+Finder fieldWithLabel(String label) => find.descendant(
+  of: find
+      .ancestor(of: find.text(label), matching: find.byType(Column))
+      .first,
+  matching: find.byType(TextField),
 );
 
 void main() {
@@ -15,7 +18,7 @@ void main() {
     await tester.pumpWidget(
       wrapWithProvider(
         client: client,
-        child: const CreateDatabaseSheet(),
+        child: const CreateDatabaseDialog(),
       ),
     );
     await tester.enterText(fieldWithLabel('数据库名 *'), 'demo');
@@ -29,7 +32,7 @@ void main() {
     await tester.pumpWidget(
       wrapWithProvider(
         client: client,
-        child: const CreateDatabaseSheet(),
+        child: const CreateDatabaseDialog(),
       ),
     );
     await tester.enterText(fieldWithLabel('数据库名 *'), 'demo');
@@ -46,7 +49,7 @@ void main() {
     await tester.pumpWidget(
       wrapWithProvider(
         client: client,
-        child: const CreateDatabaseSheet(),
+        child: const CreateDatabaseDialog(),
       ),
     );
     await tester.tap(find.widgetWithText(FilledButton, '创建'));
