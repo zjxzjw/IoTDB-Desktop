@@ -110,13 +110,11 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
       child: Row(
         children: [
           const Expanded(
-            child: Text.rich(
-              TextSpan(
-                text: 'IoTDB Desktop',
-                style: TextStyle(
-                  fontSize: ShadTokens.fontTitle,
-                  fontWeight: FontWeight.w600,
-                ),
+            child: Text(
+              'IoTDB Desktop',
+              style: TextStyle(
+                fontSize: ShadTokens.fontTitle,
+                fontWeight: FontWeight.w600,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
