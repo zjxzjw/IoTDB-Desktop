@@ -545,16 +545,40 @@ class _ClusterTable extends StatelessWidget {
   }
 }
 
-/// 数据库列表表格（名称 + TTL），点击行选中并进入 Tab 工作区
-class _DatabaseTable extends StatelessWidget {
+/// 数据库列表表格（名称 + TTL），点击行选中并进入 Tab 工作区。
+/// 库较多时分页渲染（每页 [pageSize] 条），避免一次性构建过多行。
+class _DatabaseTable extends StatefulWidget {
   final QueryResult result;
   final ValueChanged<List<dynamic>> onSelect;
 
   const _DatabaseTable({required this.result, required this.onSelect});
 
+  @override
+  State<_DatabaseTable> createState() => _DatabaseTableState();
+}
+
+class _DatabaseTableState extends State<_DatabaseTable> {
+  static const int pageSize = 10;
+
+  int _page = 0;
+
+  int get _pageCount {
+    final rows = widget.result.rows.length;
+    return rows <= 0 ? 1 : ((rows - 1) ~/ pageSize) + 1;
+  }
+
+  @override
+  void didUpdateWidget(_DatabaseTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.result.rows.length != widget.result.rows.length &&
+        _page >= _pageCount) {
+      _page = _pageCount - 1;
+    }
+  }
+
   int? _columnIndex(String name) {
-    for (var i = 0; i < result.columnNames.length; i++) {
-      final lower = result.columnNames[i].toLowerCase();
+    for (var i = 0; i < widget.result.columnNames.length; i++) {
+      final lower = widget.result.columnNames[i].toLowerCase();
       // 兼容 `TTL(ms)` 这类带单位列名
       if (lower == name || lower.startsWith('$name(')) return i;
     }
@@ -565,50 +589,104 @@ class _DatabaseTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final dbCol = _columnIndex('database') ?? 0;
     final ttlCol = _columnIndex('ttl');
+    final allRows = widget.result.rows;
+    final start = _page * pageSize;
+    final pageRows = allRows.skip(start).take(pageSize).toList();
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: ShadTokens.border),
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minWidth: constraints.maxWidth),
-            child: DataTable(
-              headingRowColor: WidgetStatePropertyAll(ShadTokens.mutedLighter),
-              horizontalMargin: ShadTokens.space4,
-              columnSpacing: ShadTokens.space4,
-              showCheckboxColumn: false,
-              columns: [
-                const DataColumn(label: Text('数据库')),
-                if (ttlCol != null) const DataColumn(label: Text('TTL')),
-              ],
-              rows: [
-                for (final row in result.rows)
-                  DataRow(
-                    onSelectChanged: (_) => onSelect(row),
-                    cells: [
-                      DataCell(
-                        Text(
-                          dbCol < row.length ? '${row[dbCol]}' : '',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (ttlCol != null)
-                        DataCell(
-                          Text(
-                            ttlCol < row.length ? '${row[ttlCol]}' : '',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                    ],
+      child: Column(
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: DataTable(
+                  headingRowColor: WidgetStatePropertyAll(
+                    ShadTokens.mutedLighter,
                   ),
-              ],
+                  horizontalMargin: ShadTokens.space4,
+                  columnSpacing: ShadTokens.space4,
+                  showCheckboxColumn: false,
+                  columns: [
+                    const DataColumn(label: Text('数据库')),
+                    if (ttlCol != null) const DataColumn(label: Text('TTL')),
+                  ],
+                  rows: [
+                    for (final row in pageRows)
+                      DataRow(
+                        onSelectChanged: (_) => widget.onSelect(row),
+                        cells: [
+                          DataCell(
+                            Text(
+                              dbCol < row.length ? '${row[dbCol]}' : '',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          if (ttlCol != null)
+                            DataCell(
+                              Text(
+                                ttlCol < row.length ? '${row[ttlCol]}' : '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
+          if (_pageCount > 1) _buildFooter(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: ShadTokens.space4,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: ShadTokens.divider)),
+        color: ShadTokens.card,
+      ),
+      child: Row(
+        children: [
+          Text(
+            '共 ${widget.result.rows.length} 个库',
+            style: const TextStyle(
+              fontSize: ShadTokens.fontAux,
+              color: ShadTokens.mutedForeground,
+            ),
+          ),
+          const Spacer(),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.chevron_left, size: 18),
+            onPressed: _page > 0 ? () => setState(() => _page--) : null,
+          ),
+          Text(
+            '${_page + 1} / $_pageCount',
+            style: const TextStyle(
+              fontSize: ShadTokens.fontAux,
+              color: ShadTokens.mutedForeground,
+            ),
+          ),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(Icons.chevron_right, size: 18),
+            onPressed: _page < _pageCount - 1
+                ? () => setState(() => _page++)
+                : null,
+          ),
+        ],
       ),
     );
   }

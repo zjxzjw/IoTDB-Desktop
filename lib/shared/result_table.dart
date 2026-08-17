@@ -124,11 +124,13 @@ class _ResultTableState extends State<ResultTable> {
                               controller: _vScroll,
                               child: SingleChildScrollView(
                                 controller: _vScroll,
-                                child: Column(
-                                  children: [
-                                    for (final row in pageRows)
-                                      _buildRow(row, widths),
-                                  ],
+                                child: SelectionArea(
+                                  child: Column(
+                                    children: [
+                                      for (final row in pageRows)
+                                        _buildRow(row, widths),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),

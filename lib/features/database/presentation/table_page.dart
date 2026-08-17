@@ -596,9 +596,6 @@ class _TableDetailPane extends ConsumerWidget {
           .read(iotdbClientProvider)
           .nonQuery(SqlBuilder.dropTable(db, table));
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('表已删除')));
       ref.read(tableSelectionProvider.notifier).clear();
       ref.invalidate(tableListProvider(db));
       final conn = ref.read(activeConnectionProvider);
