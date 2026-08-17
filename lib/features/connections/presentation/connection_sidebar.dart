@@ -73,6 +73,9 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
                 icon: const Icon(RemixIcons.add_line, size: 16),
                 label: const Text('新建连接'),
                 style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF8E246C),
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(45),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(
                       ShadTokens.radiusDefault,
@@ -371,10 +374,7 @@ class _DatabaseList extends ConsumerStatefulWidget {
   final Connection conn;
   final ValueChanged<String> onSelectDatabase;
 
-  const _DatabaseList({
-    required this.conn,
-    required this.onSelectDatabase,
-  });
+  const _DatabaseList({required this.conn, required this.onSelectDatabase});
 
   @override
   ConsumerState<_DatabaseList> createState() => _DatabaseListState();
@@ -435,10 +435,7 @@ class _DatabaseRow extends ConsumerWidget {
   final String db;
   final VoidCallback onSelect;
 
-  const _DatabaseRow({
-    required this.db,
-    required this.onSelect,
-  });
+  const _DatabaseRow({required this.db, required this.onSelect});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -447,9 +444,7 @@ class _DatabaseRow extends ConsumerWidget {
     return ListTile(
       dense: true,
       visualDensity: VisualDensity.compact,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: ShadTokens.space2,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: ShadTokens.space2),
       leading: Icon(
         RemixIcons.database_2_line,
         size: 15,
