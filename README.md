@@ -1,7 +1,7 @@
 # IoTDB Desktop
 
 <p align="center">
-  <img src="lib/assets/logo.png" width="120" alt="IoTDB Desktop Logo">
+  <img src="lib/assets/logo.png" width="120" height="120" alt="IoTDB Desktop Logo" style="border-radius: 27px;">
 </p>
 
 <p align="center">
