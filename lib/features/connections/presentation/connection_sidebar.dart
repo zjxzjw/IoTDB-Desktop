@@ -74,7 +74,7 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
                 label: const Text('新建连接'),
                 style: FilledButton.styleFrom(
                   foregroundColor: Colors.white,
-                  backgroundColor: const Color(0xFF1D5EF5),
+                  backgroundColor: const Color(0xFF8e246c),
                   minimumSize: const Size.fromHeight(45),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(

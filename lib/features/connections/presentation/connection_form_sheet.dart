@@ -355,30 +355,36 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                     const SizedBox(height: ShadTokens.space2),
                     _AdvancedRow(
                       label: '超时（毫秒）',
-                      child: SizedBox(
-                        width: 180,
-                        child: TextFormField(
-                          controller: _timeout,
-                          style: const TextStyle(fontSize: 13),
-                          decoration: InputDecoration(
-                            filled: false,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: ShadTokens.space3,
-                              vertical: 8,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: SizedBox(
+                          width: 180,
+                          child: TextFormField(
+                            controller: _timeout,
+                            style: const TextStyle(fontSize: 13),
+                            decoration: InputDecoration(
+                              filled: false,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: ShadTokens.space3,
+                                vertical: 8,
+                              ),
                             ),
+                            keyboardType: TextInputType.number,
                           ),
-                          keyboardType: TextInputType.number,
                         ),
                       ),
                     ),
                     const SizedBox(height: ShadTokens.space2),
                     _AdvancedRow(
                       label: 'HTTPS',
-                      child: Transform.scale(
-                        scale: 0.75,
-                        child: Switch.adaptive(
-                          value: _enableSSL,
-                          onChanged: (v) => setState(() => _enableSSL = v),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Transform.scale(
+                          scale: 0.75,
+                          child: Switch.adaptive(
+                            value: _enableSSL,
+                            onChanged: (v) => setState(() => _enableSSL = v),
+                          ),
                         ),
                       ),
                     ),
@@ -386,29 +392,36 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                     _AdvancedRow(
                       label: '自定义行数上限',
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
+                          if (_useRowLimit)
+                            Expanded(
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: SizedBox(
+                                  width: 180,
+                                  child: TextFormField(
+                                    controller: _rowLimit,
+                                    style: const TextStyle(fontSize: 13),
+                                    decoration: InputDecoration(
+                                      filled: false,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                        horizontal: ShadTokens.space3,
+                                        vertical: 8,
+                                      ),
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                  ),
+                                ),
+                              ),
+                            ),
                           Checkbox(
                             value: _useRowLimit,
                             onChanged: (v) =>
                                 setState(() => _useRowLimit = v ?? false),
                           ),
-                          if (_useRowLimit)
-                            SizedBox(
-                              width: 180,
-                              child: TextFormField(
-                                controller: _rowLimit,
-                                style: const TextStyle(fontSize: 13),
-                                decoration: InputDecoration(
-                                  filled: false,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: ShadTokens.space3,
-                                    vertical: 8,
-                                  ),
-                                ),
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
                         ],
                       ),
                     ),
@@ -500,6 +513,7 @@ class _AdvancedRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(
           width: 120,
@@ -511,7 +525,8 @@ class _AdvancedRow extends StatelessWidget {
             ),
           ),
         ),
-        child,
+        const SizedBox(width: ShadTokens.space3),
+        Expanded(child: child),
       ],
     );
   }
