@@ -83,32 +83,6 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                ShadTokens.space3,
-                ShadTokens.space3,
-                ShadTokens.space3,
-                ShadTokens.space1,
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    '连接管理',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: ShadTokens.mutedForeground,
-                    ),
-                  ),
-                  const Icon(
-                    RemixIcons.folder_line,
-                    size: 16,
-                    color: ShadTokens.mutedForeground,
-                  ),
-                ],
-              ),
-            ),
             Expanded(
               child: widget.loading
                   ? const Center(

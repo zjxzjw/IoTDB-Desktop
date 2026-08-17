@@ -185,32 +185,17 @@ class TableSelectionNotifier extends Notifier<String?> {
   void clear() => state = null;
 }
 
-/// 工作区 Tab 索引（侧栏跳转时同步切换）
-final workspaceTabProvider = NotifierProvider<WorkspaceTabNotifier, int>(
-  WorkspaceTabNotifier.new,
+/// 工作区独立页面
+enum WorkspacePage { dashboard, sql, tables, users, data }
+
+/// 当前工作区页面（打开连接默认仪表盘，侧栏/仪表盘选择数据库跳转到表管理）
+final workspacePageProvider = NotifierProvider<WorkspacePageNotifier, WorkspacePage>(
+  WorkspacePageNotifier.new,
 );
 
-class WorkspaceTabNotifier extends Notifier<int> {
+class WorkspacePageNotifier extends Notifier<WorkspacePage> {
   @override
-  int build() => 0;
+  WorkspacePage build() => WorkspacePage.dashboard;
 
-  void select(int index) => state = index;
-}
-
-/// 工作区显示视图：仪表盘独立页面 / Tab 工作区
-enum WorkspaceView { dashboard, tabs }
-
-/// 工作区当前视图（打开连接默认展示仪表盘，点击数据库切到 Tab 工作区）
-final workspaceViewProvider =
-    NotifierProvider<WorkspaceViewNotifier, WorkspaceView>(
-      WorkspaceViewNotifier.new,
-    );
-
-class WorkspaceViewNotifier extends Notifier<WorkspaceView> {
-  @override
-  WorkspaceView build() => WorkspaceView.dashboard;
-
-  void showDashboard() => state = WorkspaceView.dashboard;
-
-  void showTabs() => state = WorkspaceView.tabs;
+  void select(WorkspacePage page) => state = page;
 }

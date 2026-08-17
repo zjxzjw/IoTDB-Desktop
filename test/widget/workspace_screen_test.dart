@@ -4,45 +4,57 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:iotdb_desktop/core/models/connection.dart';
 import 'package:iotdb_desktop/core/providers.dart';
+import 'package:iotdb_desktop/features/dashboard/presentation/dashboard_page.dart';
+import 'package:iotdb_desktop/features/data/presentation/data_browse_page.dart';
+import 'package:iotdb_desktop/features/database/presentation/table_page.dart';
 import 'package:iotdb_desktop/features/home/presentation/home_shell.dart';
 import 'package:iotdb_desktop/features/sql/presentation/result_panel.dart';
 import 'package:iotdb_desktop/features/sql/presentation/sql_editor.dart';
+import 'package:iotdb_desktop/features/sql/presentation/sql_workbench_page.dart';
+import 'package:iotdb_desktop/features/users/presentation/users_page.dart';
 import 'package:re_editor/re_editor.dart';
 
 import '../helpers/fake_iotdb_client.dart';
 import '../helpers/test_connection.dart';
 
 void main() {
-  testWidgets('切到 Tab 工作区后正常渲染（SQL 编辑器 + 四个底部 Tab）', (tester) async {
+  testWidgets('打开连接默认显示仪表盘，AppBar 导航可切换各独立页面', (tester) async {
     enlarge(tester);
     final client = FakeIotdbClient();
     await pumpWorkspace(tester, client);
 
-    // 模拟侧栏 _selectDatabase：切到 tabs 视图并选中 tab 0
+    expect(find.byType(DashboardPage), findsOneWidget, reason: '默认应显示仪表盘');
+
     final ref = ProviderScope.containerOf(
       tester.element(find.byType(WorkspaceScreen)),
     ).read;
-    ref(workspaceViewProvider.notifier).showTabs();
-    ref(workspaceTabProvider.notifier).select(0);
-    await tester.pumpAndSettle();
 
-    expect(tester.takeException(), isNull, reason: '不应有渲染异常');
-    expect(find.byType(SqlEditor), findsOneWidget, reason: 'SQL 编辑器应渲染');
-    expect(tester.widget<TabBar>(find.byType(TabBar)).tabs.length, 4);
-    for (final label in ['表管理', '用户与权限', '数据浏览', '执行结果']) {
-      expect(
+    Future<void> go(WorkspacePage page, String tooltip, Type pageType) async {
+      await tester.tap(
         find.descendant(
-          of: find.byType(TabBar),
-          matching: find.text(label),
+          of: find.byType(SegmentedButton<WorkspacePage>),
+          matching: find.byTooltip(tooltip),
         ),
-        findsOneWidget,
-        reason: '底部 Tab「$label」应存在',
       );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: '切页不应有渲染异常');
+      expect(find.byType(pageType), findsOneWidget, reason: '$tooltip 页面应渲染');
+      expect(ref(workspacePageProvider), page, reason: 'provider 应同步到 $page');
     }
+
+    await go(WorkspacePage.sql, 'SQL 工作台', SqlWorkbenchPage);
+    expect(find.byType(SqlEditor), findsOneWidget, reason: 'SQL 编辑器应渲染');
     expect(find.byType(CodeEditor), findsOneWidget);
+    expect(find.byType(ResultPanel), findsOneWidget, reason: '结果面板应直接在编辑器下方');
+    expect(find.byType(TabBar), findsNothing, reason: '不应再有底部 Tab 切换条');
+
+    await go(WorkspacePage.tables, '表管理', TablePage);
+    await go(WorkspacePage.users, '用户与权限', UsersPage);
+    await go(WorkspacePage.data, '数据浏览', DataBrowsePage);
+    await go(WorkspacePage.dashboard, '仪表盘', DashboardPage);
   });
 
-  testWidgets('执行 SQL 后自动展开并切换到「执行结果」tab', (tester) async {
+  testWidgets('SQL 页执行 SQL 后结果直接显示在编辑器下方（无需切换页面）', (tester) async {
     enlarge(tester);
     final client = FakeIotdbClient(
       queryResponses: {
@@ -57,15 +69,13 @@ void main() {
     );
     await pumpWorkspace(tester, client);
 
-    // 模拟侧栏选中数据库：切到 tabs 视图
     final ref = ProviderScope.containerOf(
       tester.element(find.byType(WorkspaceScreen)),
     ).read;
-    ref(workspaceViewProvider.notifier).showTabs();
+    ref(workspacePageProvider.notifier).select(WorkspacePage.sql);
     await tester.pumpAndSettle();
 
-    // 进入 tabs 视图默认展开：底部内容区（IndexedStack）可见
-    expect(find.byType(IndexedStack), findsOneWidget);
+    expect(find.byType(ResultPanel), findsOneWidget, reason: 'SQL 页应内联结果面板');
 
     // 写入 SQL 并执行（Cmd/Ctrl + Enter）
     final editor = tester.widget<CodeEditor>(find.byType(CodeEditor));
@@ -78,12 +88,9 @@ void main() {
     await tester.pump();
 
     expect(tester.takeException(), isNull, reason: '执行后不应有渲染异常');
-    expect(find.byType(ResultPanel), findsOneWidget, reason: '应展开并显示结果面板');
-
-    // TabBar 选中态应同步到「执行结果」（index 3）
-    final tabBar = tester.widget<TabBar>(find.byType(TabBar));
-    expect(tabBar.controller!.index, 3, reason: 'TabBar 选中应切到执行结果');
-    expect(ref(workspaceTabProvider), 3, reason: 'provider 也应切到执行结果');
+    expect(find.byType(ResultPanel), findsOneWidget, reason: '结果面板仍在 SQL 页内');
+    expect(ref(workspacePageProvider), WorkspacePage.sql, reason: '执行 SQL 不应切换页面');
+    expect(find.text('1'), findsWidgets, reason: '结果数据应展示（编辑器与结果双份）');
 
     // 冲刷 re_editor 内部延迟任务（编辑器聚焦后光标闪烁计时器），避免残留计时器
     await tester.pump(const Duration(seconds: 10));

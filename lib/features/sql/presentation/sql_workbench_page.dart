@@ -8,15 +8,14 @@ import '../../../core/network/statement_router.dart';
 import '../../../core/providers.dart';
 import '../../../core/theme/shadcn_tokens.dart';
 import '../data/sql_history_provider.dart';
-import '../data/sql_run_results_provider.dart';
+import 'result_panel.dart';
 import 'sql_editor.dart';
 
-/// SQL 工作台：多标签编辑器 + 历史（执行结果在底部「执行结果」面板）
+/// SQL 工作台：多标签编辑器（上半） + 执行结果（下半，可拖拽调整高度）
 class SqlWorkbenchPage extends ConsumerStatefulWidget {
   final String? initialSql;
-  final VoidCallback? onExecuted;
 
-  const SqlWorkbenchPage({super.key, this.initialSql, this.onExecuted});
+  const SqlWorkbenchPage({super.key, this.initialSql});
 
   @override
   ConsumerState<SqlWorkbenchPage> createState() => _SqlWorkbenchPageState();
@@ -39,8 +38,14 @@ class _SqlTab {
 }
 
 class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
+  static const double _minEditorHeight = 120;
+  static const double _minResultsHeight = 120;
+
   final List<_SqlTab> _tabs = [];
   int _active = -1;
+
+  /// 编辑器占整体高度的比例（拖拽分割条调整）
+  double _editorRatio = 0.45;
 
   _SqlTab? get _current => _active >= 0 && _active < _tabs.length ? _tabs[_active] : null;
 
@@ -67,7 +72,6 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
       _tabs.add(_SqlTab('查询 ${_tabs.length + 1}'));
       _active = _tabs.length - 1;
     });
-    _syncResults();
   }
 
   void _closeTab(int index) {
@@ -77,13 +81,20 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     if (_active >= _tabs.length) _active = _tabs.length - 1;
     if (index < _active) _active--;
     setState(() {});
-    _syncResults();
   }
 
-  /// 将当前活动标签的结果同步到「执行结果」面板
-  void _syncResults() {
-    final tab = _current;
-    ref.read(sqlRunResultsProvider.notifier).set(tab?.results ?? const []);
+  void _onResizeDrag(double dy, double total) {
+    setState(() {
+      final maxEditor = (total - _minResultsHeight).clamp(
+        _minEditorHeight.toDouble(),
+        double.infinity,
+      );
+      final newHeight = (total * _editorRatio + dy).clamp(
+        _minEditorHeight.toDouble(),
+        maxEditor,
+      );
+      _editorRatio = newHeight / total;
+    });
   }
 
   /// 按 ; 拆分语句（简单处理：忽略空段与纯注释段）
@@ -110,8 +121,6 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
 
     final statements = _splitStatements(sql);
     setState(() => tab.results = [const SqlRunResult.running()]);
-    _syncResults();
-    widget.onExecuted?.call();
     final results = <SqlRunResult>[];
     final sw = Stopwatch()..start();
     var success = true;
@@ -139,7 +148,6 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     ));
     if (!mounted) return;
     setState(() => tab.results = results);
-    _syncResults();
     if (tab.focusNode.hasFocus || tab.focusNode.canRequestFocus) {
       tab.focusNode.requestFocus();
     }
@@ -237,10 +245,34 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
         Expanded(
           child: current == null
               ? const SizedBox.shrink()
-              : SqlEditor(
-                  controller: current.controller,
-                  focusNode: current.focusNode,
-                  onRun: _run,
+              : LayoutBuilder(
+                  builder: (context, constraints) {
+                    final total = constraints.maxHeight;
+                    final maxEditor = (total - _minResultsHeight).clamp(
+                      _minEditorHeight.toDouble(),
+                      double.infinity,
+                    );
+                    final editorHeight = (total * _editorRatio).clamp(
+                      _minEditorHeight.toDouble(),
+                      maxEditor,
+                    );
+                    return Column(
+                      children: [
+                        SizedBox(
+                          height: editorHeight,
+                          child: SqlEditor(
+                            controller: current.controller,
+                            focusNode: current.focusNode,
+                            onRun: _run,
+                          ),
+                        ),
+                        _SqlSplitHandle(onDrag: (dy) => _onResizeDrag(dy, total)),
+                        Expanded(
+                          child: ResultPanel(results: current.results),
+                        ),
+                      ],
+                    );
+                  },
                 ),
         ),
       ],
@@ -326,10 +358,7 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     final tab = _tabs[index];
     final selected = index == _active;
     return InkWell(
-      onTap: () {
-        setState(() => _active = index);
-        _syncResults();
-      },
+      onTap: () => setState(() => _active = index),
       child: Container(
         padding: const EdgeInsets.only(left: ShadTokens.space3),
         decoration: BoxDecoration(
@@ -354,6 +383,46 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
                 icon: const Icon(RemixIcons.close_line),
               ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 编辑器与结果区之间的纵向拖拽手柄：拖拽调整上下分区高度
+class _SqlSplitHandle extends StatelessWidget {
+  final ValueChanged<double> onDrag;
+
+  const _SqlSplitHandle({required this.onDrag});
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.resizeUpDown,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onVerticalDragUpdate: (d) => onDrag(d.delta.dy),
+        onVerticalDragEnd: (_) {},
+        child: SizedBox(
+          height: 6,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Center(
+                child: Container(height: 1, color: ShadTokens.border),
+              ),
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: ShadTokens.mutedForeground,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

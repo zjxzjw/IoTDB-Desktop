@@ -322,8 +322,7 @@ class _TableDetailPane extends ConsumerWidget {
                       .read(databaseSelectionProvider.notifier)
                       .select(db);
                   ref.read(tableSelectionProvider.notifier).select(table);
-                  ref.read(workspaceViewProvider.notifier).showTabs();
-                  ref.read(workspaceTabProvider.notifier).select(2);
+                  ref.read(workspacePageProvider.notifier).select(WorkspacePage.data);
                 },
                 icon: const Icon(RemixIcons.bar_chart_2_line, size: 16),
                 label: const Text('数据浏览'),

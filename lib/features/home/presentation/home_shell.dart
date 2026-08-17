@@ -14,8 +14,6 @@ import '../../dashboard/presentation/dashboard_page.dart';
 import '../../data/presentation/data_browse_page.dart';
 import '../../database/presentation/create_database_form.dart';
 import '../../database/presentation/table_page.dart';
-import '../../sql/data/sql_run_results_provider.dart';
-import '../../sql/presentation/result_panel.dart';
 import '../../sql/presentation/sql_workbench_page.dart';
 import '../../users/presentation/users_page.dart';
 
@@ -69,7 +67,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       ref.read(databaseSelectionProvider.notifier).clear();
       ref.read(tableSelectionProvider.notifier).clear();
       ref.read(activeConnectionProvider.notifier).set(conn);
-      ref.read(workspaceViewProvider.notifier).showDashboard();
+      ref.read(workspacePageProvider.notifier).select(WorkspacePage.dashboard);
     } catch (e) {
       ref.read(connectionStatusProvider.notifier).markFailure(conn.id);
       messenger.showSnackBar(SnackBar(content: Text('连接失败：$e')));
@@ -153,8 +151,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     }
     ref.read(databaseSelectionProvider.notifier).select(db);
     ref.read(tableSelectionProvider.notifier).clear();
-    ref.read(workspaceViewProvider.notifier).showTabs();
-    ref.read(workspaceTabProvider.notifier).select(0);
+    ref.read(workspacePageProvider.notifier).select(WorkspacePage.tables);
   }
 
   Future<void> _testConnection(
@@ -338,140 +335,13 @@ class _SidebarResizeHandleState extends State<_SidebarResizeHandle> {
   }
 }
 
-/// 工作区上下分区横向拖拽手柄：鼠标悬停显示调整光标，拖拽改变 SQL 区高度
-class _WorkspaceResizeHandle extends StatelessWidget {
-  final ValueChanged<double> onDrag;
-
-  const _WorkspaceResizeHandle({required this.onDrag});
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.resizeUpDown,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onVerticalDragUpdate: (d) => onDrag(d.delta.dy),
-        onVerticalDragEnd: (_) {},
-        child: SizedBox(
-          height: 6,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Center(
-                child: Container(
-                  height: 1,
-                  color: ShadTokens.border,
-                ),
-              ),
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: ShadTokens.mutedForeground,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 工作区：仪表盘独立页面（默认）或 Tab 容器（SQL 工作台 / 数据库管理 / 用户与权限 / 数据浏览）
-class WorkspaceScreen extends ConsumerStatefulWidget {
+/// 工作区：AppBar 导航 + 独立页面（仪表盘 / SQL 工作台 / 表管理 / 用户与权限 / 数据浏览），
+/// 每个页面占据整个内容区域，无折叠/分割
+class WorkspaceScreen extends ConsumerWidget {
   const WorkspaceScreen({super.key});
 
   @override
-  ConsumerState<WorkspaceScreen> createState() => _WorkspaceScreenState();
-}
-
-class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
-    with SingleTickerProviderStateMixin {
-  static const double _tabBarHeight = 48;
-  static const double _resizeHandleHeight = 6;
-  static const double _minSqlHeight = 120;
-  static const double _minContentHeight = 120;
-
-  /// 默认收起：下方仅显示 Tab 切换条，不显示内容区
-  bool _tabsExpanded = false;
-
-  /// 从 dashboard 进入 tabs 视图时待展开标记（下一帧消费）
-  bool _expandPending = false;
-
-  /// SQL 区像素高度（首次展开按总量 × 0.45 初始化，之后记住用户拖拽结果）
-  double _sqlHeight = 0;
-
-  /// 底部 TabBar 控制器：与 workspaceTabProvider 双向同步，
-  /// 保证 provider 外部切换（执行 SQL / 侧栏跳转）时 TabBar 选中态一致
-  late final TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(
-      length: 4,
-      vsync: this,
-      initialIndex: ref.read(workspaceTabProvider),
-    );
-    ref.listenManual(workspaceTabProvider, (prev, next) {
-      if (mounted && next != _tabController.index) {
-        _tabController.index = next;
-      }
-    });
-    ref.listenManual(workspaceViewProvider, (prev, next) {
-      if (mounted && next == WorkspaceView.tabs && prev != WorkspaceView.tabs) {
-        _expandPending = true;
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  void _expand(double total) {
-    if (_sqlHeight <= 0) {
-      final maxSql =
-          (total - _tabBarHeight - _resizeHandleHeight - _minContentHeight)
-              .clamp(_minSqlHeight, double.infinity);
-      _sqlHeight = (total * 0.45).clamp(_minSqlHeight, maxSql);
-    }
-    setState(() => _tabsExpanded = true);
-  }
-
-  void _collapse() => setState(() => _tabsExpanded = false);
-
-  void _toggle(double total) => _tabsExpanded ? _collapse() : _expand(total);
-
-  void _onResizeDrag(double dy, double total) {
-    if (!_tabsExpanded) {
-      _expand(total);
-      return;
-    }
-    setState(() {
-      final maxSql =
-          (total - _tabBarHeight - _resizeHandleHeight - _minContentHeight)
-              .clamp(_minSqlHeight, double.infinity);
-      _sqlHeight = (_sqlHeight + dy).clamp(_minSqlHeight, maxSql);
-    });
-  }
-
-  /// SQL 执行后：展开底部面板并切换到「执行结果」tab
-  void _onSqlExecuted(double total) {
-    if (!_tabsExpanded) {
-      _expand(total);
-    }
-    ref.read(workspaceTabProvider.notifier).select(3);
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final conn = ref.watch(activeConnectionProvider);
     if (conn == null) {
       return const Scaffold(
@@ -483,10 +353,7 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
         ),
       );
     }
-    final view = ref.watch(workspaceViewProvider);
-    final showTabs = view == WorkspaceView.tabs;
-    final tab = ref.watch(workspaceTabProvider);
-    final results = ref.watch(sqlRunResultsProvider);
+    final page = ref.watch(workspacePageProvider);
     return Scaffold(
         appBar: AppBar(
           titleSpacing: ShadTokens.space4,
@@ -498,7 +365,12 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
                 color: ShadTokens.primary,
               ),
               const SizedBox(width: ShadTokens.space2),
-              Text(conn.name),
+              Flexible(
+                child: Text(
+                  conn.name,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               const SizedBox(width: ShadTokens.space3),
               Text(
                 '${conn.host}:${conn.port}',
@@ -583,115 +455,60 @@ class _WorkspaceScreenState extends ConsumerState<WorkspaceScreen>
                 ),
               ],
             ),
-            if (showTabs) ...[
-              Container(width: 1, height: 24, color: ShadTokens.divider),
-              const SizedBox(width: ShadTokens.space1),
-              Padding(
-                padding: const EdgeInsets.only(right: ShadTokens.space3),
-                child: IconButton(
+            Container(width: 1, height: 24, color: ShadTokens.divider),
+            const SizedBox(width: ShadTokens.space1),
+            Padding(
+              padding: const EdgeInsets.only(right: ShadTokens.space3),
+              child: SegmentedButton<WorkspacePage>(
+                showSelectedIcon: false,
+                style: const ButtonStyle(
                   visualDensity: VisualDensity.compact,
-                  tooltip: '仪表盘',
-                  onPressed: () =>
-                      ref.read(workspaceViewProvider.notifier).showDashboard(),
-                  icon: const Icon(
-                    RemixIcons.speed_up_line,
-                    size: 18,
-                    color: ShadTokens.mutedForeground,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: WidgetStatePropertyAll(
+                    EdgeInsets.symmetric(horizontal: 8),
                   ),
                 ),
+                segments: const [
+                  ButtonSegment(
+                    value: WorkspacePage.dashboard,
+                    icon: Icon(RemixIcons.speed_up_line, size: 16),
+                    tooltip: '仪表盘',
+                  ),
+                  ButtonSegment(
+                    value: WorkspacePage.sql,
+                    icon: Icon(RemixIcons.terminal_line, size: 16),
+                    tooltip: 'SQL 工作台',
+                  ),
+                  ButtonSegment(
+                    value: WorkspacePage.tables,
+                    icon: Icon(RemixIcons.database_2_line, size: 16),
+                    tooltip: '表管理',
+                  ),
+                  ButtonSegment(
+                    value: WorkspacePage.users,
+                    icon: Icon(RemixIcons.user_line, size: 16),
+                    tooltip: '用户与权限',
+                  ),
+                  ButtonSegment(
+                    value: WorkspacePage.data,
+                    icon: Icon(RemixIcons.table_line, size: 16),
+                    tooltip: '数据浏览',
+                  ),
+                ],
+                selected: {page},
+                onSelectionChanged: (selection) => ref
+                    .read(workspacePageProvider.notifier)
+                    .select(selection.first),
               ),
-            ],
+            ),
           ],
         ),
-        body: showTabs
-            ? LayoutBuilder(
-                builder: (context, constraints) {
-                  final total = constraints.maxHeight;
-                  if (_expandPending) {
-                    _expandPending = false;
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted && !_tabsExpanded) _expand(total);
-                    });
-                  }
-                  final fixed = _tabBarHeight + _resizeHandleHeight;
-                  final maxSql = (total - fixed - _minContentHeight).clamp(
-                    _minSqlHeight,
-                    double.infinity,
-                  );
-                  final sqlHeight = _tabsExpanded
-                      ? _sqlHeight.clamp(_minSqlHeight, maxSql)
-                      : total - fixed;
-                  return Column(
-                    children: [
-                      SizedBox(
-                        height: sqlHeight,
-                        child: SqlWorkbenchPage(
-                          onExecuted: () => _onSqlExecuted(total),
-                        ),
-                      ),
-                      _WorkspaceResizeHandle(
-                        onDrag: (dy) => _onResizeDrag(dy, total),
-                      ),
-                      SizedBox(
-                        height: _tabBarHeight,
-                        child: Material(
-                          color: ShadTokens.card,
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TabBar(
-                                  controller: _tabController,
-                                  onTap: (i) {
-                                    ref
-                                        .read(workspaceTabProvider.notifier)
-                                        .select(i);
-                                  },
-                                  tabs: const [
-                                    Tab(text: '表管理'),
-                                    Tab(text: '用户与权限'),
-                                    Tab(text: '数据浏览'),
-                                    Tab(text: '执行结果'),
-                                  ],
-                                ),
-                              ),
-                              IconButton(
-                                visualDensity: VisualDensity.compact,
-                                tooltip: _tabsExpanded ? '收起' : '展开',
-                                onPressed: () => _toggle(total),
-                                icon: Icon(
-                                  _tabsExpanded
-                                      ? RemixIcons.arrow_down_s_line
-                                      : RemixIcons.arrow_up_s_line,
-                                  size: 18,
-                                  color: ShadTokens.mutedForeground,
-                                ),
-                              ),
-                              const SizedBox(width: ShadTokens.space2),
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (_tabsExpanded)
-                        SizedBox(
-                          height: (total - sqlHeight - fixed).clamp(
-                            _minContentHeight,
-                            double.infinity,
-                          ),
-                          child: IndexedStack(
-                            index: tab,
-                            children: [
-                              const TablePage(),
-                              const UsersPage(),
-                              const DataBrowsePage(),
-                              ResultPanel(results: results),
-                            ],
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              )
-            : const DashboardPage(),
-    );
+        body: switch (page) {
+          WorkspacePage.dashboard => const DashboardPage(),
+          WorkspacePage.sql => SqlWorkbenchPage(),
+          WorkspacePage.tables => const TablePage(),
+          WorkspacePage.users => const UsersPage(),
+          WorkspacePage.data => const DataBrowsePage(),
+        });
   }
 }

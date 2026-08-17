@@ -184,8 +184,7 @@ class DashboardPage extends ConsumerWidget {
                     final db = row.first.toString();
                     ref.read(databaseSelectionProvider.notifier).select(db);
                     ref.read(tableSelectionProvider.notifier).clear();
-                    ref.read(workspaceViewProvider.notifier).showTabs();
-                    ref.read(workspaceTabProvider.notifier).select(0);
+                    ref.read(workspacePageProvider.notifier).select(WorkspacePage.tables);
                   },
                 ),
         ),
