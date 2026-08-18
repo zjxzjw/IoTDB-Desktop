@@ -202,4 +202,15 @@ class WorkspacePageNotifier extends Notifier<WorkspacePage> {
 
 /// 待执行 SQL：表管理页「数据浏览」跳转 SQL 工作台时写入，
 /// 由 SqlWorkbenchPage 在初始化后消费（写入编辑器并自动执行），随后清空。
-final pendingSqlRunProvider = StateProvider<String?>((ref) => null);
+final pendingSqlRunProvider =
+    NotifierProvider<PendingSqlRunNotifier, String?>(
+  PendingSqlRunNotifier.new,
+);
+
+class PendingSqlRunNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void set(String sql) => state = sql;
+  void clear() => state = null;
+}

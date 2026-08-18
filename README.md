@@ -32,11 +32,11 @@
 
 <div align="center">
 
-| 连接管理 | 仪表盘 |
+| 仪表盘 | 表管理 |
 | --- | --- |
 | <img src="image/1.png" width="380" alt="运行效果 1"> | <img src="image/2.png" width="380" alt="运行效果 2"> |
 
-| SQL 工作台 | 表管理 |
+| 可视化操作 | |
 | --- | --- |
 | <img src="image/3.png" width="380" alt="运行效果 3"> | <img src="image/4.png" width="380" alt="运行效果 4"> |
 

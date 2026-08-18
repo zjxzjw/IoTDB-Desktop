@@ -396,10 +396,13 @@ class _TableDetailPane extends ConsumerWidget {
                       .read(databaseSelectionProvider.notifier)
                       .select(db);
                   ref.read(tableSelectionProvider.notifier).select(table);
-                  ref.read(workspacePageProvider.notifier).select(WorkspacePage.data);
+                  ref.read(pendingSqlRunProvider.notifier).set(
+                        SqlBuilder.browseLatest(db, table),
+                      );
+                  ref.read(workspacePageProvider.notifier).select(WorkspacePage.sql);
                 },
-                icon: const Icon(RemixIcons.bar_chart_2_line, size: 16),
-                label: const Text('数据浏览'),
+                icon: const Icon(RemixIcons.list_check, size: 16),
+                label: const Text('快速查询'),
               ),
               const SizedBox(width: ShadTokens.space2),
               FilledButton.tonalIcon(

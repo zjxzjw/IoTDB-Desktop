@@ -113,4 +113,15 @@ class SqlBuilder {
   }
 
   static String _escapeSql(String v) => v.replaceAll("'", "''");
+
+  /// 数据浏览查询：按时间列倒序取最近 [limit] 条记录
+  /// `SELECT * FROM "db"."table" ORDER BY "time" DESC LIMIT <limit>`
+  static String browseLatest(
+    String db,
+    String table, {
+    int limit = 100,
+    String timeColumn = 'time',
+  }) =>
+      'SELECT * FROM ${qualified(db, table)} '
+      'ORDER BY ${ident(timeColumn)} DESC LIMIT $limit';
 }

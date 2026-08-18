@@ -48,6 +48,17 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
     }
     _controller.addListener(_onTextChanged);
     _controller.addListener(_onSelectionChanged);
+    // 消费表管理页「数据浏览」写入的待执行 SQL：写入编辑器并自动执行。
+    // 推迟到首帧完成后再读写 provider，避免在 build 期间修改 provider 触发断言。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final pending = ref.read(pendingSqlRunProvider);
+      if (pending != null && pending.isNotEmpty) {
+        _controller.text = pending;
+        ref.read(pendingSqlRunProvider.notifier).clear();
+        _run();
+      }
+    });
   }
 
   void _onSelectionChanged() {
