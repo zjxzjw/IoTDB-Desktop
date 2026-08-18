@@ -66,8 +66,9 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Material(
-      color: ShadTokens.sidebar,
+      color: scheme.surface,
       child: SizedBox(
         width: double.infinity,
         child: Column(

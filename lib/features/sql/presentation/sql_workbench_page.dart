@@ -166,80 +166,37 @@ class _SqlWorkbenchPageState extends ConsumerState<SqlWorkbenchPage> {
   }
 
   void _showHistory() {
-    showModalBottomSheet(
+    showGeneralDialog(
       context: context,
-      backgroundColor: ShadTokens.card,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(ShadTokens.radiusLarge)),
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, animation, secondaryAnimation) => Dialog(
+        backgroundColor: ShadTokens.card,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(ShadTokens.radiusLarge),
+        ),
+        child: _HistorySheet(controller: _controller),
       ),
-      builder: (ctx) => Consumer(
-        builder: (context, ref, _) {
-          final list = ref.watch(sqlHistoryProvider);
-          return SizedBox(
-            height: 420,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(ShadTokens.space4, ShadTokens.space3, ShadTokens.space2, 0),
-                  child: Row(
-                    children: [
-                      const Icon(RemixIcons.history_line, size: 18, color: ShadTokens.primary),
-                      const SizedBox(width: ShadTokens.space2),
-                      const Text('执行历史', style: TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600)),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: () => ref.read(sqlHistoryProvider.notifier).clear(),
-                        child: const Text('清空'),
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => Navigator.pop(ctx),
-                        icon: const Icon(RemixIcons.close_line, size: 18),
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: list.isEmpty
-                      ? const Center(
-                          child: Text('暂无历史', style: TextStyle(color: ShadTokens.placeholder)),
-                        )
-                      : ListView.separated(
-                          itemCount: list.length,
-                          separatorBuilder: (_, _) => const Divider(height: 1),
-                          itemBuilder: (context, i) {
-                            final e = list[i];
-                            return ListTile(
-                              dense: true,
-                              leading: Icon(
-                                e.success ? RemixIcons.check_line : RemixIcons.close_line,
-                                size: 16,
-                                color: e.success ? ShadTokens.success : ShadTokens.destructive,
-                              ),
-                              title: Text(
-                                e.sql,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                              trailing: Text(
-                                e.elapsedMs != null ? '${e.elapsedMs}ms' : '',
-                                style: const TextStyle(fontSize: 11, color: ShadTokens.placeholder),
-                              ),
-                              onTap: () {
-                                _controller.text = e.sql;
-                                Navigator.pop(ctx);
-                              },
-                            );
-                          },
-                        ),
-                ),
-              ],
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutBack,
+          reverseCurve: Curves.easeIn,
+        );
+        return ScaleTransition(
+          scale: Tween<double>(begin: 0.85, end: 1.0).animate(curved),
+          child: FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOut,
+              reverseCurve: Curves.easeIn,
             ),
-          );
-        },
-      ),
+            child: child,
+          ),
+        );
+      },
     );
   }
 
@@ -426,4 +383,242 @@ class _SqlSplitHandle extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 执行历史弹窗（居中 Dialog）：标题 + 圆角分组列表，无标题分割线
+class _HistorySheet extends ConsumerWidget {
+  final CodeLineEditingController controller;
+
+  const _HistorySheet({required this.controller});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final list = ref.watch(sqlHistoryProvider);
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 560),
+      child: SizedBox(
+        width: 560,
+        height: 460,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 标题区：图标 + 标题 + 清空 + 关闭（与新建库弹窗一致）
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                ShadTokens.space6,
+                ShadTokens.space4,
+                ShadTokens.space4,
+                ShadTokens.space2,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Icon(RemixIcons.history_line, size: 18, color: ShadTokens.primary),
+                  const SizedBox(width: ShadTokens.space2),
+                  const Text(
+                    '执行历史',
+                    style: TextStyle(fontSize: ShadTokens.fontTitle, fontWeight: FontWeight.w600),
+                  ),
+                  const Spacer(),
+                  if (list.isNotEmpty)
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: ShadTokens.space3,
+                          vertical: ShadTokens.space1,
+                        ),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: () => ref.read(sqlHistoryProvider.notifier).clear(),
+                      child: const Text('清空'),
+                    ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    tooltip: '关闭',
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(RemixIcons.close_line, size: 18),
+                  ),
+                ],
+              ),
+            ),
+            // 列表区
+            Expanded(
+              child: list.isEmpty
+                  ? _HistoryEmpty()
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: ShadTokens.space4,
+                        vertical: ShadTokens.space1,
+                      ),
+                      itemCount: list.length,
+                      itemBuilder: (context, i) {
+                        final e = list[list.length - 1 - i]; // 最新的在最上方
+                        return _HistoryItem(
+                          entry: e,
+                          onTap: () {
+                            final current = controller.text;
+                            // 追加而非覆盖：若已有内容且不以分号结尾，才用分号+换行分隔
+                            final trimmed = current.trimRight();
+                            controller.text = current.isEmpty
+                                ? e.sql
+                                : '${trimmed.endsWith(';') ? trimmed : '$trimmed;'}\n${e.sql}';
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 空状态
+class _HistoryEmpty extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            RemixIcons.history_line,
+            size: 36,
+            color: scheme.outlineVariant,
+          ),
+          const SizedBox(height: ShadTokens.space3),
+          Text(
+            '暂无执行记录',
+            style: TextStyle(
+              fontSize: ShadTokens.fontBody,
+              color: scheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: ShadTokens.space1),
+          Text(
+            '运行 SQL 后将在此显示历史',
+            style: TextStyle(
+              fontSize: ShadTokens.fontAux,
+              color: scheme.outlineVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 单条历史：圆形状态徽章 + SQL 摘要 + 相对时间，整体圆角分组
+class _HistoryItem extends StatelessWidget {
+  final SqlHistoryEntry entry;
+  final VoidCallback onTap;
+
+  const _HistoryItem({required this.entry, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final ok = entry.success;
+    final accent = ok ? ShadTokens.success : ShadTokens.destructive;
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(ShadTokens.radiusMedium),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(ShadTokens.radiusMedium),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: ShadTokens.space3,
+            vertical: ShadTokens.space3,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // 状态徽章
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  ok ? RemixIcons.check_line : RemixIcons.close_line,
+                  size: 16,
+                  color: accent,
+                ),
+              ),
+              const SizedBox(width: ShadTokens.space3),
+              // SQL 与时间
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.sql.replaceAll(RegExp(r'\s+'), ' ').trim(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: ShadTokens.fontBody,
+                        color: scheme.onSurface,
+                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Text(
+                          _formatRelativeTime(entry.executedAt),
+                          style: TextStyle(
+                            fontSize: ShadTokens.fontAux,
+                            color: scheme.onSurfaceVariant,
+                          ),
+                        ),
+                        if (entry.elapsedMs != null) ...[
+                          const SizedBox(width: ShadTokens.space2),
+                          Text(
+                            '· ${entry.elapsedMs}ms',
+                            style: TextStyle(
+                              fontSize: ShadTokens.fontAux,
+                              color: scheme.outlineVariant,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: ShadTokens.space2),
+              Icon(
+                RemixIcons.arrow_right_s_line,
+                size: 16,
+                color: scheme.outlineVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 相对时间格式化（苹果风：刚刚 / N 分钟前 / 今天 HH:mm / MM-DD）
+String _formatRelativeTime(DateTime t) {
+  final now = DateTime.now();
+  final diff = now.difference(t);
+  if (diff.inSeconds < 60) return '刚刚';
+  if (diff.inMinutes < 60) return '${diff.inMinutes} 分钟前';
+  final sameDay = t.year == now.year && t.month == now.month && t.day == now.day;
+  if (sameDay) {
+    return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+  }
+  if (diff.inDays < 7) return '${diff.inDays} 天前';
+  return '${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}';
 }
