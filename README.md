@@ -2,9 +2,16 @@
   <img src="lib/assets/logo_dock.png" width="120" height="120" alt="IoTDB Desktop Logo">
 </p>
 
-<h1 align="center">Apache IoTDB 桌面端管理工具</h1><br/>
+<h1 align="center">Apache IoTDB 桌面端管理工具</h1>
+
 <p align="center">
-基于 Flutter 构建，支持 macOS / Windows，提供数据库、表、数据、SQL 与权限的一站式可视化运维体验
+  基于 Flutter 构建，支持 macOS / Windows，提供数据库、表、数据、SQL 与权限的一站式可视化运维体验
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white" alt="Flutter">
+  <img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-informational" alt="Platform">
+  <img src="https://img.shields.io/badge/License-Apache%202.0-green" alt="License">
 </p>
 
 [Apache IoTDB](https://iotdb.apache.org/) 是 Apache 软件基金会顶级项目，面向物联网场景的高性能时序数据库，支持海量时序数据的高吞吐写入、低延迟查询与高效压缩。本工具是 IoTDB 的桌面管理客户端，通过 IoTDB REST API v2（表模型）与服务器交互，将常用的运维操作图形化、可视化。
@@ -13,7 +20,7 @@
 
 ## 功能特性
 
-- **连接管理** — 多连接侧边栏，支持新增 / 编辑 / 删除 / 测试连接，ping 检测延迟与状态展示；支持 SSL、请求超时与结果集行数上限配置；密码通过系统安全存储（Keychain）保存，不落盘明文
+- **连接管理** — 多连接侧边栏，支持新增 / 编辑 / 删除 / 测试连接，ping 检测延迟与状态展示；支持 SSL、请求超时与结果集行数上限配置；密码不写入连接配置文件，经加密存储独立保存
 - **仪表盘** — 服务版本、数据库数量、表总数、网络延迟等统计卡片；集群节点列表（节点类型 / 状态 / 主机）；数据库列表（含 TTL）
 - **SQL 工作台** — 多标签编辑器，语法高亮，支持多条语句（`;` 拆分）依次执行；自动路由查询类（`query`）与非查询类（`nonQuery`）接口；执行结果分页表格 + 每句耗时展示；执行历史记录可回填复用
 - **表管理** — 数据库 → 表 → 列结构三级管理；可视化建表（TIME / TAG / ATTRIBUTE / FIELD 四类列）、新建列、删除列 / 表（带二次确认）；设置数据库或表级 TTL；表与列状态（USING / PRE_CREATE / PRE_DELETE）展示
@@ -23,25 +30,21 @@
 
 ## 运行效果
 
-<p align="center">
-  <img src="image/1.png" width="800" alt="运行效果图 1">
-</p>
+<div align="center">
 
-<p align="center">
-  <img src="image/2.png" width="800" alt="运行效果图 2">
-</p>
+| 连接管理 | 仪表盘 |
+| --- | --- |
+| <img src="image/1.png" width="380" alt="运行效果 1"> | <img src="image/2.png" width="380" alt="运行效果 2"> |
 
-<p align="center">
-  <img src="image/3.png" width="800" alt="运行效果图 3">
-</p>
+| SQL 工作台 | 表管理 |
+| --- | --- |
+| <img src="image/3.png" width="380" alt="运行效果 3"> | <img src="image/4.png" width="380" alt="运行效果 4"> |
 
-<p align="center">
-  <img src="image/4.png" width="800" alt="运行效果图 4">
-</p>
+| 数据浏览 |
+| --- |
+| <img src="image/5.png" width="380" alt="运行效果 5"> |
 
-<p align="center">
-  <img src="image/5.png" width="800" alt="运行效果图 5">
-</p>
+</div>
 
 ## 技术栈
 
@@ -78,6 +81,21 @@ flutter run -d windows  # Windows
 2. 点击「测试连接」验证连通性（可显示服务端版本与延迟）
 3. 打开连接，展开左侧数据库列表进入工作区
 
+## 测试
+
+项目内置完整的单元 / Widget / 存储测试，测试不发起真实网络请求（使用内置 Fake 客户端按 SQL 注入返回数据）：
+
+```bash
+# 静态检查
+flutter analyze
+
+# 运行全部测试
+flutter test
+
+# 运行单个测试文件
+flutter test test/unit/sql_builder_test.dart
+```
+
 ## 项目结构
 
 ```
@@ -102,7 +120,8 @@ lib/
 │   └── settings/             # 设置
 ├── shared/                   # 公共组件（确认对话框 / 空状态 / 结果表格）
 └── assets/
-    └── logo.png              # 应用 Logo
+    ├── logo.png              # 应用 Logo
+    └── logo_dock.png         # Dock / README Logo
 ```
 
 ## 相关链接
