@@ -249,7 +249,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                 tooltip: _kind == PrivilegeKind.user ? '删除用户' : '删除角色',
                 onPressed: selected == 'root' ? null : () => _deleteSelected(),
                 icon: Icon(
-                  RemixIcons.delete_bin_line,
+                  RemixIcons.delete_bin_7_line,
                   size: 18,
                   color: selected == 'root' ? ShadTokens.textDisabled : ShadTokens.destructive,
                 ),

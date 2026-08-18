@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="lib/assets/logo_dock.png" width="120" height="120" alt="IoTDB Desktop Logo">
+  <img src="image/logo.png" width="120" height="120" alt="IoTDB Desktop Logo">
 </p>
 
 <h1 align="center">Apache IoTDB 桌面端管理工具</h1>
@@ -10,7 +10,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white" alt="Flutter">
-  <img src="https://img.shields.io/badge/Platform-macOS%20%7C%20Windows-informational" alt="Platform">
+  <img src="https://img.shields.io/badge/Platform-MacOS%20%7C%20Windows-informational" alt="Platform">
   <img src="https://img.shields.io/badge/License-Apache%202.0-green" alt="License">
 </p>
 

@@ -13,6 +13,7 @@ import '../../connections/presentation/connection_sidebar.dart';
 import '../../dashboard/presentation/dashboard_page.dart';
 import '../../data/presentation/data_browse_page.dart';
 import '../../database/presentation/create_database_form.dart';
+import '../../database/presentation/drop_database_dialog.dart';
 import '../../database/presentation/table_page.dart';
 import '../../sql/presentation/sql_workbench_page.dart';
 import '../../users/presentation/users_page.dart';
@@ -441,19 +442,6 @@ class WorkspaceScreen extends ConsumerWidget {
             ),
             IconButton(
               visualDensity: VisualDensity.compact,
-              tooltip: '刷新',
-              onPressed: () {
-                ref.invalidate(connectionDatabaseListProvider(conn));
-                ref.invalidate(databaseListProvider);
-              },
-              icon: const Icon(
-                RemixIcons.refresh_line,
-                size: 18,
-                color: ShadTokens.mutedForeground,
-              ),
-            ),
-            IconButton(
-              visualDensity: VisualDensity.compact,
               tooltip: '断开连接',
               onPressed: () => _disconnectConnectionAction(context, ref, conn),
               icon: const Icon(
@@ -461,6 +449,30 @@ class WorkspaceScreen extends ConsumerWidget {
                 size: 18,
                 color: ShadTokens.mutedForeground,
               ),
+            ),
+            Builder(
+              builder: (ctx) {
+                final selectedDb = ref.watch(databaseSelectionProvider);
+                return IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: selectedDb == null ? '请先选择要删除的数据库' : '删除数据库',
+                  onPressed: selectedDb == null
+                      ? null
+                      : () => showDropDatabaseDialog(
+                            ctx,
+                            ref,
+                            conn: conn,
+                            db: selectedDb,
+                          ),
+                  icon: Icon(
+                    RemixIcons.delete_bin_7_line,
+                    size: 18,
+                    color: selectedDb == null
+                        ? ShadTokens.mutedForeground
+                        : ShadTokens.destructive,
+                  ),
+                );
+              },
             ),
             PopupMenuButton<_WorkspaceConnAction>(
               tooltip: '操作',

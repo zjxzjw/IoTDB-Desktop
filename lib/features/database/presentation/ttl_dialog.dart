@@ -124,55 +124,73 @@ class _TtlDialogState extends ConsumerState<TtlDialog> {
     return AlertDialog(
       title: Text(_title),
       content: SizedBox(
-        width: 400,
+        width: 440,
         child: RadioGroup<_TtlMode>(
           groupValue: _mode,
           onChanged: (v) => setState(() => _mode = v!),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const RadioListTile<_TtlMode>(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  '自定义 TTL',
-                  style: TextStyle(fontSize: ShadTokens.fontBody),
-                ),
-                value: _TtlMode.custom,
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 36,
-                  bottom: ShadTokens.space2,
-                ),
-                child: TextField(
-                  controller: _ttl,
-                  enabled: _mode == _TtlMode.custom,
-                  decoration: const InputDecoration(
-                    labelText: 'TTL（毫秒）',
-                    hintText: '如：604800000（7 天）',
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-              ),
-              const RadioListTile<_TtlMode>(
-                contentPadding: EdgeInsets.zero,
-                title: Text(
-                  '永久保存（INF）',
-                  style: TextStyle(fontSize: ShadTokens.fontBody),
-                ),
-                value: _TtlMode.infinite,
-              ),
-              if (isTable)
-                const RadioListTile<_TtlMode>(
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: ShadTokens.divider),
+              borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: ShadTokens.space3,
+              vertical: ShadTokens.space1,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RadioListTile<_TtlMode>(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    '恢复数据库默认 TTL',
+                  dense: true,
+                  title: const Text(
+                    '自定义 TTL',
                     style: TextStyle(fontSize: ShadTokens.fontBody),
                   ),
-                  value: _TtlMode.defaultTtl,
+                  secondary: SizedBox(
+                    width: 200,
+                    child: TextField(
+                      controller: _ttl,
+                      enabled: _mode == _TtlMode.custom,
+                      style: const TextStyle(fontSize: 13),
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: ShadTokens.space3,
+                          vertical: 10,
+                        ),
+                        hintText: '毫秒，如：604800000',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  value: _TtlMode.custom,
                 ),
-            ],
+                const Divider(height: 1, color: ShadTokens.divider),
+                RadioListTile<_TtlMode>(
+                  contentPadding: EdgeInsets.zero,
+                  dense: true,
+                  title: const Text(
+                    '永久保存（INF）',
+                    style: TextStyle(fontSize: ShadTokens.fontBody),
+                  ),
+                  value: _TtlMode.infinite,
+                ),
+                if (isTable) ...[
+                  const Divider(height: 1, color: ShadTokens.divider),
+                  RadioListTile<_TtlMode>(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    title: const Text(
+                      '恢复数据库默认 TTL',
+                      style: TextStyle(fontSize: ShadTokens.fontBody),
+                    ),
+                    value: _TtlMode.defaultTtl,
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),

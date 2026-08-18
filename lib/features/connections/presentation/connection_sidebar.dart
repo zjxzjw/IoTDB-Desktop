@@ -232,7 +232,6 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
           ShadTokens.space3,
         ),
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: ShadTokens.divider)),
           color: ShadTokens.sidebar,
         ),
         child: Column(
@@ -662,6 +661,14 @@ class _DatabaseRow extends ConsumerWidget {
     return ListTile(
       dense: true,
       visualDensity: VisualDensity.compact,
+      selected: selected,
+      selectedTileColor: (isLight
+              ? ShadTokens.primary
+              : ShadTokens.primaryDark)
+          .withAlpha(26),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+      ),
       contentPadding: const EdgeInsets.symmetric(horizontal: ShadTokens.space2),
       leading: Icon(
         RemixIcons.database_2_line,

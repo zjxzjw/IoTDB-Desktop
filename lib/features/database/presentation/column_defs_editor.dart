@@ -290,7 +290,7 @@ class _ColumnRowState extends State<_ColumnRow> {
                   tooltip: '删除该列',
                   onPressed: widget.onRemove,
                   icon: const Icon(
-                    RemixIcons.delete_bin_line,
+                    RemixIcons.delete_bin_7_line,
                     size: 16,
                     color: ShadTokens.destructive,
                   ),

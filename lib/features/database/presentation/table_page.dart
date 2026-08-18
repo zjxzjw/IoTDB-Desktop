@@ -426,7 +426,7 @@ class _TableDetailPane extends ConsumerWidget {
                 tooltip: '删除表',
                 onPressed: () => _dropTable(context, ref),
                 icon: const Icon(
-                  RemixIcons.delete_bin_line,
+                  RemixIcons.delete_bin_7_line,
                   size: 18,
                   color: ShadTokens.destructive,
                 ),
@@ -517,7 +517,7 @@ class _TableDetailPane extends ConsumerWidget {
                                     onPressed: () =>
                                         _dropColumn(context, ref, col),
                                     icon: const Icon(
-                                      RemixIcons.delete_bin_line,
+                                      RemixIcons.delete_bin_7_line,
                                       size: 15,
                                       color: ShadTokens.destructive,
                                     ),

@@ -216,11 +216,12 @@ class _Field extends StatelessWidget {
         Text(
           label,
           style: const TextStyle(
-            fontSize: 13,
+            fontSize: ShadTokens.fontAux,
             fontWeight: FontWeight.w500,
+            color: ShadTokens.mutedForeground,
           ),
         ),
-        const SizedBox(height: ShadTokens.space2),
+        const SizedBox(height: ShadTokens.space3),
         child,
       ],
     );
