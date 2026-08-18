@@ -452,7 +452,9 @@ class _ClusterTable extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: ShadTokens.border),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusMedium),
       ),
+      clipBehavior: Clip.antiAlias,
       child: LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -595,7 +597,9 @@ class _DatabaseTableState extends State<_DatabaseTable> {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: ShadTokens.border),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusMedium),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
           LayoutBuilder(

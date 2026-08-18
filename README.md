@@ -40,9 +40,9 @@
 | --- | --- |
 | <img src="image/3.png" width="380" alt="运行效果 3"> | <img src="image/4.png" width="380" alt="运行效果 4"> |
 
-| 数据浏览 |
-| --- |
-| <img src="image/5.png" width="380" alt="运行效果 5"> |
+| SQL 工作台 | 数据图表 |
+| --- | --- |
+| <img src="image/5.png" width="380" alt="运行效果 5"> | <img src="image/6.png" width="380" alt="运行效果 6"> |
 
 </div>
 

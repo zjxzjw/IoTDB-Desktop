@@ -199,3 +199,7 @@ class WorkspacePageNotifier extends Notifier<WorkspacePage> {
 
   void select(WorkspacePage page) => state = page;
 }
+
+/// 待执行 SQL：表管理页「数据浏览」跳转 SQL 工作台时写入，
+/// 由 SqlWorkbenchPage 在初始化后消费（写入编辑器并自动执行），随后清空。
+final pendingSqlRunProvider = StateProvider<String?>((ref) => null);
