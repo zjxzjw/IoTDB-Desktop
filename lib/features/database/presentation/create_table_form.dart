@@ -23,7 +23,6 @@ class _CreateTableFormState extends ConsumerState<CreateTableForm> {
   final _table = TextEditingController();
   final _comment = TextEditingController();
   final _ttl = TextEditingController();
-  bool _enableTtl = false;
   bool _submitting = false;
   List<TableColumn> _columns = [];
 
@@ -52,7 +51,9 @@ class _CreateTableFormState extends ConsumerState<CreateTableForm> {
         _table.text.trim(),
         columns: _columns,
         comment: _comment.text.trim().isEmpty ? null : _comment.text.trim(),
-        ttlMs: _enableTtl ? (int.tryParse(_ttl.text.trim()) ?? 0) : null,
+        ttlMs: _ttl.text.trim().isEmpty
+            ? null
+            : (int.tryParse(_ttl.text.trim()) ?? 0),
       );
       await ref.read(iotdbClientProvider).nonQuery(sql);
       if (!mounted) return;
@@ -83,7 +84,10 @@ class _CreateTableFormState extends ConsumerState<CreateTableForm> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(ShadTokens.space6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: ShadTokens.space4,
+        vertical: ShadTokens.space6,
+      ),
       child: Form(
         key: _formKey,
         child: ConstrainedBox(
@@ -98,6 +102,7 @@ class _CreateTableFormState extends ConsumerState<CreateTableForm> {
                   Expanded(
                     child: _Field(
                       label: '表名 *',
+                      labelHeight: 18,
                       child: TextFormField(
                         key: const Key('create-table-name'),
                         controller: _table,
@@ -112,6 +117,7 @@ class _CreateTableFormState extends ConsumerState<CreateTableForm> {
                   Expanded(
                     child: _Field(
                       label: '表注释（可选）',
+                      labelHeight: 18,
                       child: TextFormField(
                         key: const Key('create-table-comment'),
                         controller: _comment,
@@ -119,35 +125,33 @@ class _CreateTableFormState extends ConsumerState<CreateTableForm> {
                       ),
                     ),
                   ),
+                  const SizedBox(width: ShadTokens.space4),
+                  Expanded(
+                    child: _Field(
+                      label: 'TTL（毫秒，可选，默认继承数据库TTL）',
+                      labelStyle: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: ShadTokens.mutedForeground,
+                      ),
+                      labelHeight: 18,
+                      labelSpacing: ShadTokens.space3,
+                      child: TextFormField(
+                        key: const Key('create-table-ttl'),
+                        controller: _ttl,
+                        decoration: const InputDecoration(isDense: true),
+                        keyboardType: TextInputType.number,
+                        validator: (v) {
+                          final text = v?.trim() ?? '';
+                          if (text.isEmpty) return null;
+                          final n = int.tryParse(text);
+                          return (n == null || n < 1) ? '需为正整数毫秒' : null;
+                        },
+                      ),
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: ShadTokens.space4),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                title: const Text(
-                  '设置表 TTL（可选，默认继承数据库 TTL）',
-                  style: TextStyle(fontSize: 13),
-                ),
-                value: _enableTtl,
-                onChanged: (v) => setState(() => _enableTtl = v ?? false),
-              ),
-              if (_enableTtl) ...[
-                const SizedBox(height: ShadTokens.space2),
-                _Field(
-                  label: 'TTL（毫秒）',
-                  child: TextFormField(
-                    key: const Key('create-table-ttl'),
-                    controller: _ttl,
-                    decoration: const InputDecoration(isDense: true),
-                    keyboardType: TextInputType.number,
-                    validator: (v) {
-                      final n = int.tryParse(v ?? '');
-                      return (n == null || n < 1) ? '需为正整数毫秒' : null;
-                    },
-                  ),
-                ),
-              ],
               const SizedBox(height: ShadTokens.space6),
               const Text(
                 '列定义',
@@ -204,8 +208,17 @@ class _CreateTableFormState extends ConsumerState<CreateTableForm> {
 class _Field extends StatelessWidget {
   final String label;
   final Widget child;
+  final TextStyle? labelStyle;
+  final double labelSpacing;
+  final double? labelHeight;
 
-  const _Field({required this.label, required this.child});
+  const _Field({
+    required this.label,
+    required this.child,
+    this.labelStyle,
+    this.labelSpacing = ShadTokens.space3,
+    this.labelHeight,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -213,15 +226,19 @@ class _Field extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: ShadTokens.fontAux,
-            fontWeight: FontWeight.w500,
-            color: ShadTokens.mutedForeground,
+        SizedBox(
+          height: labelHeight,
+          child: Text(
+            label,
+            style: labelStyle ??
+                const TextStyle(
+                  fontSize: ShadTokens.fontAux,
+                  fontWeight: FontWeight.w500,
+                  color: ShadTokens.mutedForeground,
+                ),
           ),
         ),
-        const SizedBox(height: ShadTokens.space3),
+        SizedBox(height: labelSpacing),
         child,
       ],
     );

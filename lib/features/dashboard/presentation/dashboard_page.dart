@@ -443,6 +443,7 @@ class _ClusterTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
     final idCol = _columnIndex('nodeid') ?? 0;
     final typeCol = _columnIndex('nodetype');
     final statusCol = _columnIndex('status');
@@ -451,6 +452,7 @@ class _ClusterTable extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
+        color: isLight ? ShadTokens.card : ShadTokens.cardDark,
         border: Border.all(color: ShadTokens.border),
         borderRadius: BorderRadius.circular(ShadTokens.radiusMedium),
       ),
@@ -589,6 +591,7 @@ class _DatabaseTableState extends State<_DatabaseTable> {
 
   @override
   Widget build(BuildContext context) {
+    final isLight = Theme.of(context).brightness == Brightness.light;
     final dbCol = _columnIndex('database') ?? 0;
     final ttlCol = _columnIndex('ttl');
     final allRows = widget.result.rows;
@@ -596,6 +599,7 @@ class _DatabaseTableState extends State<_DatabaseTable> {
     final pageRows = allRows.skip(start).take(pageSize).toList();
     return Container(
       decoration: BoxDecoration(
+        color: isLight ? ShadTokens.card : ShadTokens.cardDark,
         border: Border.all(color: ShadTokens.border),
         borderRadius: BorderRadius.circular(ShadTokens.radiusMedium),
       ),
