@@ -52,9 +52,14 @@ class _TtlDialogState extends ConsumerState<TtlDialog> {
     super.dispose();
   }
 
-  String get _title => switch (widget.target) {
-    TtlTarget.database => '设置数据库 TTL · ${widget.db}',
-    TtlTarget.table => '设置表 TTL · ${widget.db}.${widget.table}',
+  String get _titleText => switch (widget.target) {
+    TtlTarget.database => '设置数据库 TTL',
+    TtlTarget.table => '设置表 TTL',
+  };
+
+  String get _titleBadge => switch (widget.target) {
+    TtlTarget.database => widget.db,
+    TtlTarget.table => '${widget.db}.${widget.table}',
   };
 
   Future<void> _submit() async {
@@ -122,7 +127,32 @@ class _TtlDialogState extends ConsumerState<TtlDialog> {
   Widget build(BuildContext context) {
     final isTable = widget.target == TtlTarget.table;
     return AlertDialog(
-      title: Text(_title),
+      title: Row(
+        children: [
+          Text(_titleText),
+          const SizedBox(width: ShadTokens.space2),
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: ShadTokens.space2,
+                vertical: 2,
+              ),
+              decoration: BoxDecoration(
+                color: ShadTokens.muted,
+                borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+              ),
+              child: Text(
+                _titleBadge,
+                style: const TextStyle(
+                  fontSize: ShadTokens.fontAux,
+                  color: ShadTokens.mutedForeground,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+        ],
+      ),
       content: SizedBox(
         width: 440,
         child: RadioGroup<_TtlMode>(

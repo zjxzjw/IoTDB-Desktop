@@ -72,4 +72,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(client.nonQuerySql, isEmpty);
   });
+
+  testWidgets('表 TTL：标题展示「设置表 TTL」并以徽章显示 db.table', (
+    tester,
+  ) async {
+    await pumpDialog(tester, target: TtlTarget.table, table: 't1');
+    expect(find.text('设置表 TTL'), findsOneWidget);
+    expect(find.text('demo.t1'), findsOneWidget);
+    expect(find.text('设置表 TTL · demo.t1'), findsNothing);
+  });
+
+  testWidgets('数据库 TTL：标题展示「设置数据库 TTL」并以徽章显示 db', (
+    tester,
+  ) async {
+    await pumpDialog(tester, target: TtlTarget.database);
+    expect(find.text('设置数据库 TTL'), findsOneWidget);
+    expect(find.text('demo'), findsOneWidget);
+    expect(find.text('设置数据库 TTL · demo'), findsNothing);
+  });
 }

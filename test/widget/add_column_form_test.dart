@@ -42,4 +42,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(client.nonQuerySql, isEmpty);
   });
+
+  testWidgets('标题展示「新建列」并以徽章显示表名', (tester) async {
+    final client = FakeIotdbClient();
+    await tester.pumpWidget(
+      wrapWithProvider(
+        client: client,
+        child: const AddColumnDialog(db: 'demo', table: 't1'),
+      ),
+    );
+    expect(find.text('新建列'), findsOneWidget);
+    expect(find.text('t1'), findsOneWidget);
+    // 标题中不再内联拼接表名
+    expect(find.text('新建列 · t1'), findsNothing);
+  });
 }

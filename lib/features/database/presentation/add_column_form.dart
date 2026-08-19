@@ -107,13 +107,39 @@ class _AddColumnDialogState extends ConsumerState<AddColumnDialog> {
                     ),
                     const SizedBox(width: ShadTokens.space2),
                     Expanded(
-                      child: Text(
-                        '新建列 · ${widget.table}',
-                        style: const TextStyle(
-                          fontSize: ShadTokens.fontTitle,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                      child: Row(
+                        children: [
+                          const Text(
+                            '新建列',
+                            style: TextStyle(
+                              fontSize: ShadTokens.fontTitle,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: ShadTokens.space2),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: ShadTokens.space2,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: ShadTokens.muted,
+                                borderRadius: BorderRadius.circular(
+                                  ShadTokens.radiusDefault,
+                                ),
+                              ),
+                              child: Text(
+                                widget.table,
+                                style: const TextStyle(
+                                  fontSize: ShadTokens.fontAux,
+                                  color: ShadTokens.mutedForeground,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     IconButton(
