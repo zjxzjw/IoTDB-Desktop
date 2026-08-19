@@ -232,9 +232,7 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
           ShadTokens.space2,
           ShadTokens.space3,
         ),
-        decoration: BoxDecoration(
-          color: ShadTokens.sidebar,
-        ),
+        decoration: BoxDecoration(color: ShadTokens.sidebar),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
@@ -277,8 +275,9 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
                       foregroundColor: isLight
                           ? ShadTokens.foreground
                           : ShadTokens.foregroundDark,
-                      overlayColor:
-                          isLight ? ShadTokens.hover : ShadTokens.hoverDark,
+                      overlayColor: isLight
+                          ? ShadTokens.hover
+                          : ShadTokens.hoverDark,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(
                           ShadTokens.radiusDefault,
@@ -307,13 +306,15 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
                       ),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       visualDensity: VisualDensity.compact,
-                      backgroundColor:
-                          isLight ? ShadTokens.muted : ShadTokens.mutedDark,
+                      backgroundColor: isLight
+                          ? ShadTokens.muted
+                          : ShadTokens.mutedDark,
                       foregroundColor: isLight
                           ? ShadTokens.foreground
                           : ShadTokens.foregroundDark,
-                      overlayColor:
-                          isLight ? ShadTokens.hover : ShadTokens.hoverDark,
+                      overlayColor: isLight
+                          ? ShadTokens.hover
+                          : ShadTokens.hoverDark,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(
                           ShadTokens.radiusDefault,
@@ -338,8 +339,9 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
               child: LinearProgressIndicator(
                 value: shown / total,
                 minHeight: 3,
-                backgroundColor:
-                    isLight ? ShadTokens.muted : ShadTokens.mutedDark,
+                backgroundColor: isLight
+                    ? ShadTokens.muted
+                    : ShadTokens.mutedDark,
                 valueColor: AlwaysStoppedAnimation(
                   isLight ? ShadTokens.primary : ShadTokens.primaryDark,
                 ),
@@ -365,12 +367,6 @@ class _ConnectionSidebarState extends ConsumerState<ConnectionSidebar> {
           const Text(
             '暂无连接',
             style: TextStyle(fontSize: 13, color: ShadTokens.placeholder),
-          ),
-          const SizedBox(height: ShadTokens.space3),
-          TextButton.icon(
-            onPressed: () => showConnectionFormDialog(context, ref),
-            icon: const Icon(RemixIcons.add_line, size: 16),
-            label: const Text('新建连接'),
           ),
         ],
       ),
@@ -663,9 +659,7 @@ class _DatabaseRow extends ConsumerWidget {
       dense: true,
       visualDensity: VisualDensity.compact,
       selected: selected,
-      selectedTileColor: (isLight
-              ? ShadTokens.primary
-              : ShadTokens.primaryDark)
+      selectedTileColor: (isLight ? ShadTokens.primary : ShadTokens.primaryDark)
           .withAlpha(26),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),

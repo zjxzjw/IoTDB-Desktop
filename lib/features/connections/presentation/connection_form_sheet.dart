@@ -176,6 +176,83 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
     }
   }
 
+  /// 测试连接结果提示条：仅在出错/成功时显示，无消息则返回空。
+  Widget _buildMessageBar() {
+    if (_testError == null && _testSuccess == null) {
+      return const SizedBox.shrink();
+    }
+    if (_testError != null) {
+      return Container(
+        padding: const EdgeInsets.all(ShadTokens.space3),
+        decoration: BoxDecoration(
+          color: ShadTokens.destructive.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+          border: Border.all(
+            color: ShadTokens.destructive.withValues(alpha: 0.4),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(
+                  RemixIcons.error_warning_line,
+                  size: 16,
+                  color: ShadTokens.destructive,
+                ),
+                SizedBox(width: ShadTokens.space2),
+                Text(
+                  '连接失败',
+                  style: TextStyle(
+                    fontSize: ShadTokens.fontBody,
+                    fontWeight: FontWeight.w600,
+                    color: ShadTokens.destructive,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: ShadTokens.space2),
+            Text(
+              '$_testError',
+              style: const TextStyle(
+                fontSize: ShadTokens.fontBody,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return Container(
+      padding: const EdgeInsets.all(ShadTokens.space3),
+      decoration: BoxDecoration(
+        color: ShadTokens.success.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(ShadTokens.radiusDefault),
+        border: Border.all(
+          color: ShadTokens.success.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            RemixIcons.check_line,
+            size: 16,
+            color: ShadTokens.success,
+          ),
+          const SizedBox(width: ShadTokens.space2),
+          Expanded(
+            child: Text(
+              '$_testSuccess',
+              style: const TextStyle(
+                fontSize: ShadTokens.fontBody,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -432,6 +509,8 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                 ),
               ),
               const SizedBox(height: ShadTokens.space8),
+              _buildMessageBar(),
+              const SizedBox(height: ShadTokens.space6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -470,94 +549,7 @@ class _ConnectionFormDialogState extends ConsumerState<ConnectionFormDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: ShadTokens.space3),
-              Container(
-                padding: const EdgeInsets.all(ShadTokens.space3),
-                decoration: BoxDecoration(
-                  color: _testError != null
-                      ? ShadTokens.destructive.withValues(alpha: 0.08)
-                      : _testSuccess != null
-                          ? ShadTokens.success.withValues(alpha: 0.08)
-                          : ShadTokens.muted,
-                  borderRadius: BorderRadius.circular(
-                    ShadTokens.radiusDefault,
-                  ),
-                  border: Border.all(
-                    color: _testError != null
-                        ? ShadTokens.destructive.withValues(alpha: 0.4)
-                        : _testSuccess != null
-                            ? ShadTokens.success.withValues(alpha: 0.4)
-                            : ShadTokens.border,
-                  ),
-                ),
-                child: _testError != null
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Row(
-                            children: [
-                              Icon(
-                                RemixIcons.error_warning_line,
-                                size: 16,
-                                color: ShadTokens.destructive,
-                              ),
-                              SizedBox(width: ShadTokens.space2),
-                              Text(
-                                '连接失败',
-                                style: TextStyle(
-                                  fontSize: ShadTokens.fontBody,
-                                  fontWeight: FontWeight.w600,
-                                  color: ShadTokens.destructive,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: ShadTokens.space2),
-                          Text(
-                            '$_testError',
-                            style: const TextStyle(
-                              fontSize: ShadTokens.fontBody,
-                            ),
-                          ),
-                        ],
-                      )
-                    : _testSuccess != null
-                        ? Row(
-                            children: [
-                              const Icon(
-                                RemixIcons.check_line,
-                                size: 16,
-                                color: ShadTokens.success,
-                              ),
-                              const SizedBox(width: ShadTokens.space2),
-                              Expanded(
-                                child: Text(
-                                  '$_testSuccess',
-                                  style: const TextStyle(
-                                    fontSize: ShadTokens.fontBody,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : const Row(
-                            children: [
-                              Icon(
-                                RemixIcons.information_line,
-                                size: 16,
-                                color: ShadTokens.mutedForeground,
-                              ),
-                              SizedBox(width: ShadTokens.space2),
-                              Text(
-                                '暂无消息',
-                                style: TextStyle(
-                                  fontSize: ShadTokens.fontBody,
-                                  color: ShadTokens.mutedForeground,
-                                ),
-                              ),
-                            ],
-                          ),
-              ),
+              const SizedBox(height: ShadTokens.space6),
             ],
           ),
         ),
